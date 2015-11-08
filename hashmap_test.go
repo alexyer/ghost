@@ -2,16 +2,22 @@ package ghost
 
 import (
 	"fmt"
+	"io/ioutil"
+	"strings"
 	"testing"
 )
 
 const MAXSIZE = 82
 
 var (
-	empty   hashMap
-	one     hashMap
-	several hashMap
-	many    hashMap
+	empty     hashMap
+	one       hashMap
+	several   hashMap
+	many      hashMap
+	wordsHash hashMap
+	nativeMap map[string]string
+	words     []string
+	result    string
 )
 
 func init() {
@@ -19,6 +25,7 @@ func init() {
 	one = NewHashMap()
 	several = NewHashMap()
 	many = NewHashMap()
+	wordsHash = NewHashMap()
 
 	one.Set("One", "one")
 
@@ -27,6 +34,23 @@ func init() {
 
 	for i := 0; i < MAXSIZE; i++ {
 		many.Set(fmt.Sprintf("%d", i), fmt.Sprintf("%d", i))
+	}
+
+	raw, err := ioutil.ReadFile("/usr/share/dict/cracklib-small")
+
+	if err == nil {
+		data := string(raw)
+		words = strings.Split(data, "\n")
+	}
+
+	for _, w := range words {
+		wordsHash.Set(string(w), string(w))
+	}
+
+	nativeMap := make(map[string]string)
+
+	for _, w := range words {
+		nativeMap[string(w)] = string(w)
 	}
 }
 
@@ -101,5 +125,61 @@ func TestHashDelete(t *testing.T) {
 
 	if _, err := several.Get("Two"); err == nil {
 		t.Errorf("Wrong delete behavior")
+	}
+}
+
+func BenchmarkSet(b *testing.B) {
+	h := NewHashMap()
+
+	for i := 0; i < b.N; i++ {
+		for _, w := range words {
+			h.Set(string(w), string(w))
+		}
+	}
+}
+
+func BenchmarkGet(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, w := range words {
+			wordsHash.Get(string(w))
+		}
+	}
+}
+
+func BenchmarkDel(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, w := range words {
+			wordsHash.Del(string(w))
+		}
+	}
+}
+
+func BenchmarkNativeSet(b *testing.B) {
+	h := make(map[string]string)
+
+	for i := 0; i < b.N; i++ {
+		for _, w := range words {
+			h[string(w)] = string(w)
+		}
+	}
+}
+
+func BenchmarkNativeGet(b *testing.B) {
+	var r string
+
+	for i := 0; i < b.N; i++ {
+		for _, w := range words {
+			r = nativeMap[string(w)]
+		}
+	}
+
+	result = r
+}
+
+func BenchmarkNativeDel(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, w := range words {
+			delete(nativeMap, string(w))
+		}
 	}
 }
