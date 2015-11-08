@@ -1,12 +1,16 @@
+// Naive implementation of Hashmap data structure.
 package ghost
 
 import (
 	"errors"
+	"fmt"
 	"hash/fnv"
 )
 
-const initSize uint32 = 2  // Default number of buckets
-var currentSize uint32 = 0 // Current size of the hasmap
+const (
+	initSize  uint32  = 2    // Default number of buckets
+	threshold float32 = 0.75 // Threshold load factor to rehash table
+)
 
 type node struct {
 	Next *node
@@ -14,26 +18,63 @@ type node struct {
 	Val  string
 }
 
+func (n *node) String() string {
+	return fmt.Sprintf("<%s, %s>", n.Key, n.Val)
+}
+
 type hashMap struct {
+	Count   uint32 // Number of elements in hashmap
+	Size    uint32 // Number of buckets in hashmap
 	buckets []*node
 }
 
-func newHashMap() hashMap {
-	currentSize = initSize
-
+func NewHashMap() hashMap {
 	newTable := hashMap{}
-	newTable.buckets = make([]*node, currentSize)
+	newTable.buckets = make([]*node, initSize)
+	newTable.Size = initSize
 
 	return newTable
 }
 
-// Set or update key
-func (h *hashMap) set(key, val string) {
-	index := getIndex(key)
+func (h *hashMap) String() string {
+	s := ""
+
+	for i, bucket := range h.buckets {
+		tmp := fmt.Sprintf("%d: ", i)
+		currentNode := bucket
+
+		for {
+			if currentNode == nil {
+				break
+			}
+
+			tmp += fmt.Sprintf("%s ", currentNode)
+
+			if currentNode.Next == nil {
+				break
+			}
+
+			currentNode = currentNode.Next
+		}
+
+		s += fmt.Sprintln(tmp)
+	}
+
+	return s
+}
+
+// Set or update key.
+func (h *hashMap) Set(key, val string) {
+	if h.loadFactor() >= threshold {
+		h.rehash()
+	}
+
+	index := h.getIndex(key)
 	currentNode := h.find(key, h.buckets[index])
 
 	if currentNode == nil {
 		h.buckets[index] = &node{h.buckets[index], key, val}
+		h.Count++
 	} else {
 		currentNode.Val = val
 	}
@@ -41,8 +82,8 @@ func (h *hashMap) set(key, val string) {
 
 // Get element from the hashmap.
 // Return error if value is not found.
-func (h *hashMap) get(key string) (string, error) {
-	tmp := h.find(key, h.buckets[getIndex(key)])
+func (h *hashMap) Get(key string) (string, error) {
+	tmp := h.find(key, h.buckets[h.getIndex(key)])
 
 	if tmp != nil {
 		return tmp.Val, nil
@@ -52,8 +93,8 @@ func (h *hashMap) get(key string) (string, error) {
 }
 
 // Delete element from the hashmap.
-func (h *hashMap) del(key string) {
-	index := getIndex(key)
+func (h *hashMap) Del(key string) {
+	index := h.getIndex(key)
 	currentNode := h.buckets[index]
 	var prev *node = nil
 
@@ -65,6 +106,7 @@ func (h *hashMap) del(key string) {
 				prev.Next = currentNode.Next
 			}
 
+			h.Count--
 			return
 		}
 
@@ -72,6 +114,54 @@ func (h *hashMap) del(key string) {
 	}
 }
 
+// Get current load factor.
+func (h *hashMap) loadFactor() float32 {
+	return float32(h.Count) / float32(h.Size)
+}
+
+// Allocate new bigger hashmap and rehash all keys.
+func (h *hashMap) rehash() {
+	h.Size <<= 1
+	newBuckets := make([]*node, h.Size)
+
+	for n := range h.nodes() {
+		index := h.getIndex(n.Key)
+
+		if newBuckets[index] == nil {
+			newBuckets[index] = &node{nil, n.Key, n.Val}
+		} else {
+			newBuckets[index] = &node{newBuckets[index], n.Key, n.Val}
+		}
+	}
+
+	h.buckets = newBuckets
+}
+
+// Navigate through all nodes
+func (h *hashMap) nodes() <-chan *node {
+	ch := make(chan *node)
+
+	go func() {
+		for _, bucket := range h.buckets {
+			currentNode := bucket
+
+			for {
+				if currentNode == nil {
+					break
+				}
+
+				ch <- currentNode
+
+				currentNode = currentNode.Next
+			}
+		}
+		close(ch)
+	}()
+
+	return ch
+}
+
+// Find node.
 func (h *hashMap) find(key string, node *node) *node {
 	for node != nil {
 		if node.Key == key {
@@ -83,8 +173,9 @@ func (h *hashMap) find(key string, node *node) *node {
 	return nil
 }
 
-func getIndex(key string) uint32 {
-	h := fnv.New32()
-	h.Write([]byte(key))
-	return h.Sum32() % currentSize
+// Get index of bucket key belongs to.
+func (h *hashMap) getIndex(key string) uint32 {
+	hash := fnv.New32()
+	hash.Write([]byte(key))
+	return hash.Sum32() % h.Size
 }

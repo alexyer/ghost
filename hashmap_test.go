@@ -1,8 +1,11 @@
 package ghost
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
-const MAXSIZE = 42
+const MAXSIZE = 82
 
 var (
 	empty   hashMap
@@ -12,91 +15,91 @@ var (
 )
 
 func init() {
-	empty = newHashMap()
-	one = newHashMap()
-	several = newHashMap()
-	many = newHashMap()
+	empty = NewHashMap()
+	one = NewHashMap()
+	several = NewHashMap()
+	many = NewHashMap()
 
-	one.set("One", "one")
+	one.Set("One", "one")
 
-	several.set("One", "one")
-	several.set("Two", "two")
+	several.Set("One", "one")
+	several.Set("Two", "two")
 
 	for i := 0; i < MAXSIZE; i++ {
-		many.set(string(i), string(i))
+		many.Set(fmt.Sprintf("%d", i), fmt.Sprintf("%d", i))
 	}
 }
 
 func TestHashGet(t *testing.T) {
-	if i, _ := one.get("One"); i != "one" {
-		t.Errorf("One hash get failed")
+	if i, _ := one.Get("One"); i != "one" {
+		t.Errorf("One hash Get failed")
 	}
 
-	first, _ := several.get("One")
-	second, _ := several.get("Two")
+	first, _ := several.Get("One")
+	second, _ := several.Get("Two")
 	if first != "one" || second != "two" {
-		t.Errorf("Several hash get failed")
+		t.Errorf("Several hash Get failed")
 	}
 
 	for i := 0; i < MAXSIZE; i++ {
-		if i, _ := many.get(string(i)); string(i) != string(i) {
-			t.Errorf("Many hash get failed")
+		if j, _ := many.Get(fmt.Sprintf("%d", i)); fmt.Sprintf("%d", i) != j {
+			t.Errorf("Many hash Get failed. Expected: %d, Got: %d", i, j)
 		}
 	}
 }
 
 func TestHashGetNotInTable(t *testing.T) {
-	if _, err := empty.get("One"); err == nil {
+	if _, err := empty.Get("One"); err == nil {
 		t.Errorf("Wrong behavior")
 	}
 
-	if _, err := one.get("Two"); err == nil {
+	if _, err := one.Get("Two"); err == nil {
 		t.Errorf("Wrong behavior")
 	}
 
-	if _, err := several.get("three"); err == nil {
+	if _, err := several.Get("three"); err == nil {
 		t.Errorf("Wrong behavior")
 	}
 }
 
 func TestHashSetChangeValue(t *testing.T) {
-	one.set("One", "ten")
+	one.Set("One", "ten")
 
-	if val, _ := one.get("One"); val != "ten" {
+	if val, _ := one.Get("One"); val != "ten" {
 		t.Errorf("Wrong update behavior")
 	}
 
-	several.set("Two", "ten")
+	several.Set("Two", "ten")
 
-	if val, _ := several.get("Two"); val != "ten" {
+	if val, _ := several.Get("Two"); val != "ten" {
 		t.Errorf("Wrong update behavior")
 	}
 }
 
 func TestHashSetValue(t *testing.T) {
-	one.set("Two", "ten")
+	one.Set("Two", "ten")
 
-	if val, _ := one.get("Two"); val != "ten" {
+	if val, _ := one.Get("Two"); val != "ten" {
 		t.Errorf("Wrong update behavior")
 	}
 
-	several.set("Ten", "ten")
+	several.Set("Ten", "ten")
 
-	if val, _ := several.get("Ten"); val != "ten" {
+	if val, _ := several.Get("Ten"); val != "ten" {
 		t.Errorf("Wrong update behavior")
 	}
 }
 
 func TestHashDelete(t *testing.T) {
-	one.del("One")
+	one.Del("One")
 
-	if _, err := one.get("One"); err == nil {
+	if _, err := one.Get("One"); err == nil {
 		t.Errorf("Wrong delete behavior")
 	}
 
-	several.del("Two")
+	several.Del("Two")
 
-	if _, err := several.get("Two"); err == nil {
+	if _, err := several.Get("Two"); err == nil {
 		t.Errorf("Wrong delete behavior")
 	}
 }
