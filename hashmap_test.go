@@ -3,8 +3,10 @@ package ghost
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"strings"
 	"testing"
+	"time"
 )
 
 const MAXSIZE = 82
@@ -47,7 +49,7 @@ func init() {
 		wordsHash.Set(string(w), string(w))
 	}
 
-	nativeMap := make(map[string]string)
+	nativeMap = make(map[string]string)
 
 	for _, w := range words {
 		nativeMap[string(w)] = string(w)
@@ -154,6 +156,25 @@ func BenchmarkDel(b *testing.B) {
 	}
 }
 
+func BenchmarkMixed(b *testing.B) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < b.N; i++ {
+		for j := 0; j < 10000; j++ {
+			op := r.Intn(100)
+
+			switch {
+			case op <= 75:
+				wordsHash.Get(words[r.Intn(2500)])
+			case op <= 90:
+				wordsHash.Set(words[r.Intn(2500)], words[r.Intn(2500)])
+			default:
+				wordsHash.Del(words[r.Intn(2500)])
+			}
+		}
+	}
+}
+
 func BenchmarkNativeSet(b *testing.B) {
 	h := make(map[string]string)
 
@@ -182,4 +203,26 @@ func BenchmarkNativeDel(b *testing.B) {
 			delete(nativeMap, string(w))
 		}
 	}
+}
+
+func BenchmarkNativeMixed(b *testing.B) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var res string
+
+	for i := 0; i < b.N; i++ {
+		for j := 0; j < 10000; j++ {
+			op := r.Intn(100)
+
+			switch {
+			case op < 75:
+				res = nativeMap[words[r.Intn(2500)]]
+			case op < 90:
+				nativeMap[words[r.Intn(2500)]] = words[r.Intn(2500)]
+			default:
+				delete(nativeMap, words[r.Intn(2500)])
+			}
+		}
+	}
+
+	result = res
 }
