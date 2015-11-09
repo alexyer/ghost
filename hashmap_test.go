@@ -12,11 +12,11 @@ import (
 const MAXSIZE = 82
 
 var (
-	empty     hashMap
-	one       hashMap
-	several   hashMap
-	many      hashMap
-	wordsHash hashMap
+	empty     *hashMap
+	one       *hashMap
+	several   *hashMap
+	many      *hashMap
+	wordsHash *hashMap
 	nativeMap map[string]string
 	words     []string
 	result    string

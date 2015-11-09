@@ -28,8 +28,8 @@ type hashMap struct {
 	buckets []*node
 }
 
-func NewHashMap() hashMap {
-	newTable := hashMap{}
+func NewHashMap() *hashMap {
+	newTable := &hashMap{}
 	newTable.buckets = make([]*node, initSize)
 	newTable.Size = initSize
 
