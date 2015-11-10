@@ -3,7 +3,6 @@ package ghost
 
 import (
 	"errors"
-	"fmt"
 	"hash/fnv"
 )
 
@@ -18,10 +17,6 @@ type node struct {
 	Val  string
 }
 
-func (n *node) String() string {
-	return fmt.Sprintf("<%s, %s>", n.Key, n.Val)
-}
-
 type hashMap struct {
 	Count   uint32 // Number of elements in hashmap
 	Size    uint32 // Number of buckets in hashmap
@@ -34,33 +29,6 @@ func NewHashMap() *hashMap {
 	newTable.Size = initSize
 
 	return newTable
-}
-
-func (h *hashMap) String() string {
-	s := ""
-
-	for i, bucket := range h.buckets {
-		tmp := fmt.Sprintf("%d: ", i)
-		currentNode := bucket
-
-		for {
-			if currentNode == nil {
-				break
-			}
-
-			tmp += fmt.Sprintf("%s ", currentNode)
-
-			if currentNode.Next == nil {
-				break
-			}
-
-			currentNode = currentNode.Next
-		}
-
-		s += fmt.Sprintln(tmp)
-	}
-
-	return s
 }
 
 // Set or update key.
