@@ -17,7 +17,9 @@ type node struct {
 	Val string
 }
 
-type bucket []*node
+type bucket struct {
+	vector
+}
 
 type hashMap struct {
 	Count   uint32 // Number of elements in hashmap
@@ -30,10 +32,6 @@ func NewHashMap() *hashMap {
 	newTable := &hashMap{}
 
 	newTable.buckets = make([]bucket, initSize)
-
-	for i := range newTable.buckets {
-		newTable.buckets[i] = make(bucket, 2)
-	}
 
 	newTable.Size = initSize
 	newTable.hash = fnv.New32a()
@@ -48,13 +46,13 @@ func (h *hashMap) Set(key, val string) {
 	}
 
 	index := h.getIndex(key)
-	bucketIndex := h.find(key, h.buckets[index])
+	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
-		h.buckets[index] = append(h.buckets[index], &node{key, val})
+		h.buckets[index].Push(node{key, val})
 		h.Count++
 	} else {
-		h.buckets[index][bucketIndex].Val = val
+		h.buckets[index].Nodes[bucketIndex].Val = val
 	}
 }
 
@@ -63,28 +61,25 @@ func (h *hashMap) Set(key, val string) {
 func (h *hashMap) Get(key string) (string, error) {
 	index := h.getIndex(key)
 
-	bucketIndex := h.find(key, h.buckets[index])
+	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
 		return "", errors.New("No value")
 	} else {
-		return h.buckets[index][bucketIndex].Val, nil
+		return h.buckets[index].Nodes[bucketIndex].Val, nil
 	}
 }
 
 // Delete element from the hashmap.
 func (h *hashMap) Del(key string) {
 	index := h.getIndex(key)
-	bucketIndex := h.find(key, h.buckets[index])
+	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
 		return
 	}
 
-	h.buckets[index][bucketIndex] = h.buckets[index][len(h.buckets[index])-1]
-	h.buckets[index][len(h.buckets[index])-1] = nil
-	h.buckets[index] = h.buckets[index][:len(h.buckets[index])-1]
-
+	h.buckets[index].Pop(bucketIndex)
 	h.Count--
 }
 
@@ -98,45 +93,27 @@ func (h *hashMap) rehash() {
 	h.Size <<= 1
 	newBuckets := make([]bucket, h.Size)
 
-	for i := range newBuckets {
-		newBuckets[i] = make(bucket, 2)
-	}
-
 	for n := range h.nodes() {
-		index := h.getIndex(n.Key)
-		newBuckets[index] = append(newBuckets[index], n)
+		newBuckets[h.getIndex(n.Key)].Push(n)
 	}
 
 	h.buckets = newBuckets
 }
 
 // Navigate through all nodes
-func (h *hashMap) nodes() <-chan *node {
-	ch := make(chan *node)
+func (h *hashMap) nodes() <-chan node {
+	ch := make(chan node)
 
 	go func() {
 		for _, b := range h.buckets {
-			for _, n := range b {
-				if n != nil {
-					ch <- n
-				}
+			for i := 0; i < b.count; i++ {
+				ch <- b.Nodes[i]
 			}
 		}
 		close(ch)
 	}()
 
 	return ch
-}
-
-// Find index of the node in bucket or -1.
-func (h *hashMap) find(key string, b bucket) int {
-	for i := range b {
-		if b[i] != nil && b[i].Key == key {
-			return i
-		}
-	}
-
-	return -1
 }
 
 // Get index of bucket key belongs to.
