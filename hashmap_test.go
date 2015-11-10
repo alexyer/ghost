@@ -2,24 +2,17 @@ package ghost
 
 import (
 	"fmt"
-	"io/ioutil"
-	"math/rand"
-	"strings"
 	"testing"
-	"time"
 )
 
 const MAXSIZE = 82
 
 var (
-	empty     *hashMap
-	one       *hashMap
-	several   *hashMap
-	many      *hashMap
-	wordsHash *hashMap
-	nativeMap map[string]string
-	words     []string
-	result    string
+	empty   *hashMap
+	one     *hashMap
+	several *hashMap
+	many    *hashMap
+	result  string
 )
 
 func init() {
@@ -27,7 +20,6 @@ func init() {
 	one = NewHashMap()
 	several = NewHashMap()
 	many = NewHashMap()
-	wordsHash = NewHashMap()
 
 	one.Set("One", "one")
 
@@ -36,23 +28,6 @@ func init() {
 
 	for i := 0; i < MAXSIZE; i++ {
 		many.Set(fmt.Sprintf("%d", i), fmt.Sprintf("%d", i))
-	}
-
-	raw, err := ioutil.ReadFile("/usr/share/dict/cracklib-small")
-
-	if err == nil {
-		data := string(raw)
-		words = strings.Split(data, "\n")
-	}
-
-	for _, w := range words {
-		wordsHash.Set(string(w), string(w))
-	}
-
-	nativeMap = make(map[string]string)
-
-	for _, w := range words {
-		nativeMap[string(w)] = string(w)
 	}
 }
 
@@ -131,98 +106,84 @@ func TestHashDelete(t *testing.T) {
 }
 
 func BenchmarkSet(b *testing.B) {
+	b.StopTimer()
 	h := NewHashMap()
+	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		for _, w := range words {
-			h.Set(string(w), string(w))
-		}
+		h.Set(string(i), "Yarrr")
 	}
 }
 
 func BenchmarkGet(b *testing.B) {
+	b.StopTimer()
+	h := NewHashMap()
+
 	for i := 0; i < b.N; i++ {
-		for _, w := range words {
-			wordsHash.Get(string(w))
-		}
+		h.Set(string(i), "Yarrr")
+	}
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		h.Get(string(i))
 	}
 }
 
 func BenchmarkDel(b *testing.B) {
+	b.StopTimer()
+	h := NewHashMap()
+
 	for i := 0; i < b.N; i++ {
-		for _, w := range words {
-			wordsHash.Del(string(w))
-		}
+		h.Set(string(i), "Yarrr")
 	}
-}
 
-func BenchmarkMixed(b *testing.B) {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		for j := 0; j < 10000; j++ {
-			op := r.Intn(100)
-
-			switch {
-			case op <= 75:
-				wordsHash.Get(words[r.Intn(2500)])
-			case op <= 90:
-				wordsHash.Set(words[r.Intn(2500)], words[r.Intn(2500)])
-			default:
-				wordsHash.Del(words[r.Intn(2500)])
-			}
-		}
+		h.Del(string(i))
 	}
 }
 
 func BenchmarkNativeSet(b *testing.B) {
+	b.StopTimer()
 	h := make(map[string]string)
+	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		for _, w := range words {
-			h[string(w)] = string(w)
-		}
+		h[string(i)] = "Yarrr"
 	}
 }
 
 func BenchmarkNativeGet(b *testing.B) {
+	b.StopTimer()
 	var r string
+	h := make(map[string]string)
 
 	for i := 0; i < b.N; i++ {
-		for _, w := range words {
-			r = nativeMap[string(w)]
-		}
+		h[string(i)] = "Yarrr"
+	}
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		r = h[string(i)]
 	}
 
 	result = r
 }
 
 func BenchmarkNativeDel(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		for _, w := range words {
-			delete(nativeMap, string(w))
-		}
-	}
-}
-
-func BenchmarkNativeMixed(b *testing.B) {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	var res string
+	b.StopTimer()
+	h := make(map[string]string)
 
 	for i := 0; i < b.N; i++ {
-		for j := 0; j < 10000; j++ {
-			op := r.Intn(100)
-
-			switch {
-			case op < 75:
-				res = nativeMap[words[r.Intn(2500)]]
-			case op < 90:
-				nativeMap[words[r.Intn(2500)]] = words[r.Intn(2500)]
-			default:
-				delete(nativeMap, words[r.Intn(2500)])
-			}
-		}
+		h[string(i)] = "Yarrr"
 	}
 
-	result = res
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		delete(h, string(i))
+	}
 }
