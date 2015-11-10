@@ -18,19 +18,17 @@ I hope to improve it one day...or not.
 Ghost hashmap
 
 ```
-BenchmarkSet-2                30          38032398 ns/op
-BenchmarkGet-2                50          29517307 ns/op
-BenchmarkDel-2               100          19910142 ns/op
-BenchmarkMixed-2             300           5886845 ns/op
+BenchmarkSet-2            300000              5574 ns/op
+BenchmarkGet-2           3000000               501 ns/op
+BenchmarkDel-2           3000000               395 ns/op
 ```
 
 Native hashmap
 
 ```
-BenchmarkNativeSet-2         100          14275454 ns/op
-BenchmarkNativeGet-2         200           9778833 ns/op
-BenchmarkNativeDel-2        3000            526531 ns/op
-BenchmarkNativeMixed-2       500           2660463 ns/op
+BenchmarkNativeSet-2     1000000              2147 ns/op
+BenchmarkNativeGet-2    10000000               115 ns/op
+BenchmarkNativeDel-2    20000000                53.1 ns/op
 ```
 
 ## Example
