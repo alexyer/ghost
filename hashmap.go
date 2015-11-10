@@ -3,6 +3,7 @@ package ghost
 
 import (
 	"errors"
+	"hash"
 	"hash/fnv"
 )
 
@@ -20,6 +21,7 @@ type node struct {
 type hashMap struct {
 	Count   uint32 // Number of elements in hashmap
 	Size    uint32 // Number of buckets in hashmap
+	hash    hash.Hash32
 	buckets []*node
 }
 
@@ -27,6 +29,7 @@ func NewHashMap() *hashMap {
 	newTable := &hashMap{}
 	newTable.buckets = make([]*node, initSize)
 	newTable.Size = initSize
+	newTable.hash = fnv.New32a()
 
 	return newTable
 }
@@ -143,7 +146,7 @@ func (h *hashMap) find(key string, node *node) *node {
 
 // Get index of bucket key belongs to.
 func (h *hashMap) getIndex(key string) uint32 {
-	hash := fnv.New32()
-	hash.Write([]byte(key))
-	return hash.Sum32() % h.Size
+	h.hash.Reset()
+	h.hash.Write([]byte(key))
+	return h.hash.Sum32() % h.Size
 }
