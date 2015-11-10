@@ -2,20 +2,20 @@ package ghost
 
 import "testing"
 
-var testStorage *storage
+var testStorage *Storage
 
 func init() {
-	testStorage = Storage()
+	testStorage = GetStorage()
 }
 
 func TestStorage(t *testing.T) {
-	newStorage := Storage()
+	newStorage := GetStorage()
 
 	if newStorage == nil {
 		t.Errorf("Storage construtor is wrong.")
 	}
 
-	if Storage() != Storage() {
+	if GetStorage() != GetStorage() {
 		t.Errorf("Storage is not singleton")
 	}
 }
