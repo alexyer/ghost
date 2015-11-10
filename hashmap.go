@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	initSize  uint32  = 2    // Default number of buckets
+	initSize  uint32  = 8    // Default number of buckets
 	threshold float32 = 0.75 // Threshold load factor to rehash table
 )
 
