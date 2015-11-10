@@ -119,8 +119,8 @@ func TestHashSetValue(t *testing.T) {
 func TestHashDelete(t *testing.T) {
 	one.Del("One")
 
-	if _, err := one.Get("One"); err == nil {
-		t.Errorf("Wrong delete behavior")
+	if res, err := one.Get("One"); err == nil {
+		t.Errorf("Wrong delete behavior. Got: %s", res)
 	}
 
 	several.Del("Two")

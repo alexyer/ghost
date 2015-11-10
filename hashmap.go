@@ -13,21 +13,28 @@ const (
 )
 
 type node struct {
-	Next *node
-	Key  string
-	Val  string
+	Key string
+	Val string
 }
+
+type bucket []*node
 
 type hashMap struct {
 	Count   uint32 // Number of elements in hashmap
 	Size    uint32 // Number of buckets in hashmap
 	hash    hash.Hash32
-	buckets []*node
+	buckets []bucket
 }
 
 func NewHashMap() *hashMap {
 	newTable := &hashMap{}
-	newTable.buckets = make([]*node, initSize)
+
+	newTable.buckets = make([]bucket, initSize)
+
+	for i := range newTable.buckets {
+		newTable.buckets[i] = make(bucket, 2)
+	}
+
 	newTable.Size = initSize
 	newTable.hash = fnv.New32a()
 
@@ -41,48 +48,44 @@ func (h *hashMap) Set(key, val string) {
 	}
 
 	index := h.getIndex(key)
-	currentNode := h.find(key, h.buckets[index])
+	bucketIndex := h.find(key, h.buckets[index])
 
-	if currentNode == nil {
-		h.buckets[index] = &node{h.buckets[index], key, val}
+	if bucketIndex < 0 {
+		h.buckets[index] = append(h.buckets[index], &node{key, val})
 		h.Count++
 	} else {
-		currentNode.Val = val
+		h.buckets[index][bucketIndex].Val = val
 	}
 }
 
 // Get element from the hashmap.
 // Return error if value is not found.
 func (h *hashMap) Get(key string) (string, error) {
-	tmp := h.find(key, h.buckets[h.getIndex(key)])
+	index := h.getIndex(key)
 
-	if tmp != nil {
-		return tmp.Val, nil
-	} else {
+	bucketIndex := h.find(key, h.buckets[index])
+
+	if bucketIndex < 0 {
 		return "", errors.New("No value")
+	} else {
+		return h.buckets[index][bucketIndex].Val, nil
 	}
 }
 
 // Delete element from the hashmap.
 func (h *hashMap) Del(key string) {
 	index := h.getIndex(key)
-	currentNode := h.buckets[index]
-	var prev *node = nil
+	bucketIndex := h.find(key, h.buckets[index])
 
-	for currentNode != nil {
-		if currentNode.Key == key {
-			if prev == nil {
-				h.buckets[index] = currentNode.Next
-			} else {
-				prev.Next = currentNode.Next
-			}
-
-			h.Count--
-			return
-		}
-
-		prev, currentNode = currentNode, currentNode.Next
+	if bucketIndex < 0 {
+		return
 	}
+
+	h.buckets[index][bucketIndex] = h.buckets[index][len(h.buckets[index])-1]
+	h.buckets[index][len(h.buckets[index])-1] = nil
+	h.buckets[index] = h.buckets[index][:len(h.buckets[index])-1]
+
+	h.Count--
 }
 
 // Get current load factor.
@@ -93,16 +96,15 @@ func (h *hashMap) loadFactor() float32 {
 // Allocate new bigger hashmap and rehash all keys.
 func (h *hashMap) rehash() {
 	h.Size <<= 1
-	newBuckets := make([]*node, h.Size)
+	newBuckets := make([]bucket, h.Size)
+
+	for i := range newBuckets {
+		newBuckets[i] = make(bucket, 2)
+	}
 
 	for n := range h.nodes() {
 		index := h.getIndex(n.Key)
-
-		if newBuckets[index] == nil {
-			newBuckets[index] = &node{nil, n.Key, n.Val}
-		} else {
-			newBuckets[index] = &node{newBuckets[index], n.Key, n.Val}
-		}
+		newBuckets[index] = append(newBuckets[index], n)
 	}
 
 	h.buckets = newBuckets
@@ -113,17 +115,11 @@ func (h *hashMap) nodes() <-chan *node {
 	ch := make(chan *node)
 
 	go func() {
-		for _, bucket := range h.buckets {
-			currentNode := bucket
-
-			for {
-				if currentNode == nil {
-					break
+		for _, b := range h.buckets {
+			for _, n := range b {
+				if n != nil {
+					ch <- n
 				}
-
-				ch <- currentNode
-
-				currentNode = currentNode.Next
 			}
 		}
 		close(ch)
@@ -132,16 +128,15 @@ func (h *hashMap) nodes() <-chan *node {
 	return ch
 }
 
-// Find node.
-func (h *hashMap) find(key string, node *node) *node {
-	for node != nil {
-		if node.Key == key {
-			return node
+// Find index of the node in bucket or -1.
+func (h *hashMap) find(key string, b bucket) int {
+	for i, n := range b {
+		if n != nil && n.Key == key {
+			return i
 		}
-		node = node.Next
 	}
 
-	return nil
+	return -1
 }
 
 // Get index of bucket key belongs to.
