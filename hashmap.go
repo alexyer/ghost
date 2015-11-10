@@ -130,8 +130,8 @@ func (h *hashMap) nodes() <-chan *node {
 
 // Find index of the node in bucket or -1.
 func (h *hashMap) find(key string, b bucket) int {
-	for i, n := range b {
-		if n != nil && n.Key == key {
+	for i := range b {
+		if b[i] != nil && b[i].Key == key {
 			return i
 		}
 	}
