@@ -188,19 +188,19 @@ func BenchmarkNativeDel(b *testing.B) {
 	}
 }
 
-//func BenchmarkParallelkSet(b *testing.B) {
-//b.StopTimer()
-//h := NewHashMap()
-//i := 0
-//b.StartTimer()
+func BenchmarkParallelSet(b *testing.B) {
+	b.StopTimer()
+	h := NewHashMap()
+	i := 0
+	b.StartTimer()
 
-//b.RunParallel(func(pb *testing.PB) {
-//for pb.Next() {
-//h.Set(string(i), "Yarrr")
-//i++
-//}
-//})
-//}
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			h.Set(string(i), "Yarrr")
+			i++
+		}
+	})
+}
 
 func ParallelGet(b *testing.B, i int, h *hashMap) {
 	b.RunParallel(func(pb *testing.PB) {
