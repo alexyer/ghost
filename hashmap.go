@@ -1,4 +1,4 @@
-// Naive implementation of Hashmap data structure.
+// Implementation of Striped Hashmap data structure.
 package ghost
 
 import (
