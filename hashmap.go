@@ -125,15 +125,26 @@ func (h *hashMap) release(index uint32) {
 	h.locks[index%uint32(len(h.locks))].Unlock()
 }
 
+func (h *hashMap) acquireAll() {
+	for i := 0; i < len(h.locks); i++ {
+		h.locks[i].Lock()
+	}
+}
+
+func (h *hashMap) releaseAll() {
+	for i := len(h.locks) - 1; i >= 0; i-- {
+		h.locks[i].Unlock()
+	}
+}
+
 // Allocate new bigger hashmap and rehash all keys.
 func (h *hashMap) rehash() {
 	oldSize := h.Size
 
-	for i := 0; i < len(h.locks); i++ {
-		h.locks[i].Lock()
-	}
+	h.acquireAll()
 
 	if oldSize != h.Size {
+		h.releaseAll()
 		return // Someone beat us to it
 	}
 
@@ -146,9 +157,7 @@ func (h *hashMap) rehash() {
 
 	h.buckets = newBuckets
 
-	for i := len(h.locks) - 1; i >= 0; i-- {
-		h.locks[i].Unlock()
-	}
+	h.releaseAll()
 }
 
 // Navigate through all nodes
