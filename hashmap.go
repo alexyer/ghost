@@ -21,7 +21,8 @@ type bucket struct {
 }
 
 type hashMap struct {
-	Count   uint32       // Number of elements in hashmap
+	Count   uint32 // Number of elements in hashmap
+	CountMu sync.Mutex
 	Size    uint32       // Number of buckets in hashmap
 	buckets []bucket     // Array of indiviual buckets in hashmap
 	locks   []sync.Mutex // Array of locks. Used to syncronize bucket access
@@ -53,7 +54,10 @@ func (h *hashMap) Set(key, val string) {
 
 	if bucketIndex < 0 {
 		h.buckets[index].Push(node{key, val})
+
+		h.CountMu.Lock()
 		h.Count++
+		h.CountMu.Unlock()
 	} else {
 		h.buckets[index].Nodes[bucketIndex].Val = val
 	}
@@ -74,8 +78,10 @@ func (h *hashMap) Get(key string) (string, error) {
 		h.release(index)
 		return "", errors.New("No value")
 	} else {
+		val := h.buckets[index].Nodes[bucketIndex].Val
 		h.release(index)
-		return h.buckets[index].Nodes[bucketIndex].Val, nil
+
+		return val, nil
 	}
 }
 
@@ -92,14 +98,21 @@ func (h *hashMap) Del(key string) {
 	}
 
 	h.buckets[index].Pop(bucketIndex)
+
+	h.CountMu.Lock()
 	h.Count--
+	h.CountMu.Unlock()
 
 	h.release(index)
 }
 
 // Get current load factor.
 func (h *hashMap) loadFactor() float32 {
-	return float32(h.Count) / float32(h.Size)
+	h.CountMu.Lock()
+	factor := float32(h.Count) / float32(h.Size)
+	h.CountMu.Unlock()
+
+	return factor
 }
 
 // Acquire control on the bucket.
