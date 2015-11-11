@@ -1,14 +1,13 @@
-// Naive implementation of Hashmap data structure.
+// Implementation of Striped Hashmap data structure.
 package ghost
 
 import (
 	"errors"
-	"hash"
-	"hash/fnv"
+	"sync"
 )
 
 const (
-	initSize  uint32  = 8    // Default number of buckets
+	initSize  uint32  = 64   // Default number of buckets
 	threshold float32 = 0.75 // Threshold load factor to rehash table
 )
 
@@ -23,9 +22,10 @@ type bucket struct {
 
 type hashMap struct {
 	Count   uint32 // Number of elements in hashmap
-	Size    uint32 // Number of buckets in hashmap
-	hash    hash.Hash32
-	buckets []bucket
+	CountMu sync.Mutex
+	Size    uint32       // Number of buckets in hashmap
+	buckets []bucket     // Array of indiviual buckets in hashmap
+	locks   []sync.Mutex // Array of locks. Used to syncronize bucket access
 }
 
 func NewHashMap() *hashMap {
@@ -33,8 +33,9 @@ func NewHashMap() *hashMap {
 
 	newTable.buckets = make([]bucket, initSize)
 
+	newTable.locks = make([]sync.Mutex, initSize)
+
 	newTable.Size = initSize
-	newTable.hash = fnv.New32a()
 
 	return newTable
 }
@@ -46,14 +47,22 @@ func (h *hashMap) Set(key, val string) {
 	}
 
 	index := h.getIndex(key)
+
+	h.acquire(index)
+
 	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
 		h.buckets[index].Push(node{key, val})
+
+		h.CountMu.Lock()
 		h.Count++
+		h.CountMu.Unlock()
 	} else {
 		h.buckets[index].Nodes[bucketIndex].Val = val
 	}
+
+	h.release(index)
 }
 
 // Get element from the hashmap.
@@ -61,35 +70,85 @@ func (h *hashMap) Set(key, val string) {
 func (h *hashMap) Get(key string) (string, error) {
 	index := h.getIndex(key)
 
+	h.acquire(index)
+
 	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
+		h.release(index)
 		return "", errors.New("No value")
 	} else {
-		return h.buckets[index].Nodes[bucketIndex].Val, nil
+		val := h.buckets[index].Nodes[bucketIndex].Val
+		h.release(index)
+
+		return val, nil
 	}
 }
 
 // Delete element from the hashmap.
 func (h *hashMap) Del(key string) {
 	index := h.getIndex(key)
+
+	h.acquire(index)
+
 	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
+		h.release(index)
 		return
 	}
 
 	h.buckets[index].Pop(bucketIndex)
+
+	h.CountMu.Lock()
 	h.Count--
+	h.CountMu.Unlock()
+
+	h.release(index)
 }
 
 // Get current load factor.
 func (h *hashMap) loadFactor() float32 {
-	return float32(h.Count) / float32(h.Size)
+	h.CountMu.Lock()
+	factor := float32(h.Count) / float32(h.Size)
+	h.CountMu.Unlock()
+
+	return factor
+}
+
+// Acquire control on the bucket.
+func (h *hashMap) acquire(index uint32) {
+	h.locks[index%uint32(len(h.locks))].Lock()
+}
+
+// Release control on the bucket.
+func (h *hashMap) release(index uint32) {
+	h.locks[index%uint32(len(h.locks))].Unlock()
+}
+
+func (h *hashMap) acquireAll() {
+	for i := 0; i < len(h.locks); i++ {
+		h.locks[i].Lock()
+	}
+}
+
+func (h *hashMap) releaseAll() {
+	for i := len(h.locks) - 1; i >= 0; i-- {
+		h.locks[i].Unlock()
+	}
 }
 
 // Allocate new bigger hashmap and rehash all keys.
 func (h *hashMap) rehash() {
+	oldSize := h.Size
+
+	h.acquireAll()
+
+	if oldSize != h.Size {
+		h.releaseAll()
+		return // Someone beat us to it
+	}
+
 	h.Size <<= 1
 	newBuckets := make([]bucket, h.Size)
 
@@ -98,6 +157,8 @@ func (h *hashMap) rehash() {
 	}
 
 	h.buckets = newBuckets
+
+	h.releaseAll()
 }
 
 // Navigate through all nodes
@@ -118,7 +179,5 @@ func (h *hashMap) nodes() <-chan node {
 
 // Get index of bucket key belongs to.
 func (h *hashMap) getIndex(key string) uint32 {
-	h.hash.Reset()
-	h.hash.Write([]byte(key))
-	return h.hash.Sum32() % h.Size
+	return FNV1a_32([]byte(key)) % h.Size
 }
