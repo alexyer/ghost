@@ -94,6 +94,7 @@ func (h *hashMap) Del(key string) {
 	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
+		h.release(index)
 		return
 	}
 
