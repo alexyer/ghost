@@ -187,3 +187,99 @@ func BenchmarkNativeDel(b *testing.B) {
 		delete(h, string(i))
 	}
 }
+
+//func BenchmarkParallelkSet(b *testing.B) {
+//b.StopTimer()
+//h := NewHashMap()
+//i := 0
+//b.StartTimer()
+
+//b.RunParallel(func(pb *testing.PB) {
+//for pb.Next() {
+//h.Set(string(i), "Yarrr")
+//i++
+//}
+//})
+//}
+
+func ParallelGet(b *testing.B, i int, h *hashMap) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			h.Get(string(i))
+			i++
+		}
+	})
+}
+
+func BenchmarkParallelGet(b *testing.B) {
+	b.StopTimer()
+	i := 0
+	h := NewHashMap()
+
+	for i := 0; i < 5000; i++ {
+		h.Set(string(i), "Yarrr")
+	}
+
+	b.StartTimer()
+	ParallelGet(b, i, h)
+}
+
+func BenchmarkParallelGet8(b *testing.B) {
+	b.StopTimer()
+	i := 0
+	h := NewHashMap()
+
+	for i := 0; i < 5000; i++ {
+		h.Set(string(i), "Yarrr")
+	}
+
+	b.SetParallelism(8)
+
+	b.StartTimer()
+	ParallelGet(b, i, h)
+}
+
+func BenchmarkParallelGet64(b *testing.B) {
+	b.StopTimer()
+	i := 0
+	h := NewHashMap()
+
+	for i := 0; i < 5000; i++ {
+		h.Set(string(i), "Yarrr")
+	}
+
+	b.SetParallelism(64)
+
+	b.StartTimer()
+	ParallelGet(b, i, h)
+}
+
+func BenchmarkParallelGet128(b *testing.B) {
+	b.StopTimer()
+	i := 0
+	h := NewHashMap()
+
+	for i := 0; i < 5000; i++ {
+		h.Set(string(i), "Yarrr")
+	}
+
+	b.SetParallelism(128)
+
+	b.StartTimer()
+	ParallelGet(b, i, h)
+}
+
+func BenchmarkParallelGet1024(b *testing.B) {
+	b.StopTimer()
+	i := 0
+	h := NewHashMap()
+
+	for i := 0; i < 5000; i++ {
+		h.Set(string(i), "Yarrr")
+	}
+
+	b.SetParallelism(1024)
+
+	b.StartTimer()
+	ParallelGet(b, i, h)
+}
