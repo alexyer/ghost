@@ -11,8 +11,20 @@ type Server struct {
 	Port int
 }
 
-func RunGhost(host string, port int) Server {
-	s := Server{host, port}
+type GhostServerConfig struct {
+	Host string
+	Port int
+}
+
+func GhostRun(config *GhostServerConfig) Server {
+	if config.Host == "" {
+		config.Host = "localhost"
+	}
+	if config.Port == 0 {
+		config.Port = 6869
+	}
+
+	s := Server{config.Host, config.Port}
 
 	log.Printf("Starting ghost server on %s:%d", s.Host, s.Port)
 

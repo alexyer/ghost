@@ -18,5 +18,8 @@ func init() {
 
 func main() {
 	flag.Parse()
-	server.RunGhost(host, port)
+	server.GhostRun(&server.GhostServerConfig{
+		Host: host,
+		Port: port,
+	})
 }
