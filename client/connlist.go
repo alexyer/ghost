@@ -25,7 +25,7 @@ func (cl *connList) Len() int {
 
 // Reserve place in the list and return true on success.
 // The caller must add or remove connection if place was reserved.
-func (cl *connList) Reserver() bool {
+func (cl *connList) Reserve() bool {
 	length := atomic.AddInt32(&cl.len, 1)
 	reserved := length <= cl.size
 
