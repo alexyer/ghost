@@ -26,7 +26,7 @@ func GhostRun(config *GhostServerConfig) Server {
 
 	s := Server{config.Host, config.Port}
 
-	log.Printf("Starting ghost server on %s:%d", s.Host, s.Port)
+	log.Printf("Starting Ghost server on %s:%d", s.Host, s.Port)
 
 	s.handle()
 
