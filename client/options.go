@@ -7,89 +7,91 @@ import (
 
 type Options struct {
 	// Dialer creates new network connection and has priority
-	// over network and addr options.
-	dialer func() (net.Conn, error)
+	// over network and Addr options.
+	Dialer func() (net.Conn, error)
 
 	// The network type.
 	// Default: tcp.
-	network string
+	Network string
 
 	// host:port address.
-	addr string
+	Addr string
 
 	// Collection name.
 	// Default: "main".
-	collectionName string
+	CollectionName string
 
 	// The maximum number of socket connections.
 	// Default: 10 connections.
-	poolSize int
+	PoolSize int
 
 	// Specifies amount of time client watis for connection if all
 	// connections are busy before returning an error.
 	// Default: 5 seconds.
-	poolTimeout time.Duration
+	PoolTimeout time.Duration
 
 	// Specifies amount of time after which client closes idle connections.
 	// Default: not close idle connections.
-	idleTimeout time.Duration
+	IdleTimeout time.Duration
 
 	// Specifies the deadline for establishing new connections.
 	// If reached, dial will fail with a timeout.
-	dialTimeout time.Duration
+	DialTiemout time.Duration
 }
 
-func (opt *Options) getDialer() func() (net.Conn, error) {
+func (opt *Options) GetDialer() func() (net.Conn, error) {
 	if opt.Dialer == nil {
 		opt.Dialer = func() (net.Conn, error) {
 			return net.DialTimeout(opt.GetNetwork(), opt.GetAddr(), opt.GetDialTimeout())
 		}
 	}
+
+	return opt.Dialer
 }
 
 func (opt *Options) GetPoolSize() int {
-	if opt.poolSize == 0 {
+	if opt.PoolSize == 0 {
 		return 10
 	}
-	return opt.poolSize
+	return opt.PoolSize
 }
 
 func (opt *Options) GetNetwork() string {
-	if opt.network == "" {
+	if opt.Network == "" {
 		return "tcp"
 	}
 
-	return opt.network
+	return opt.Network
 }
 
 func (opt *Options) GetAddr() string {
-	return opt.addr
+	return opt.Addr
 }
 
 func (opt *Options) GetDialTimeout() time.Duration {
-	if opt.dialTimeout == 0 {
+	if opt.DialTiemout == 0 {
 		return 5 * time.Second
 	}
 
-	return opt.dialTimeout
+	return opt.DialTiemout
 }
 
 func (opt *Options) GetCollectionName() string {
-	if opt.collectionName == "" {
+	if opt.CollectionName == "" {
 		return "main"
 	}
 
-	return opt.collectionName
+	return opt.CollectionName
 }
 
 func (opt *Options) GetPoolTimeout() time.Duration {
-	if opt.poolTimeout == 0 {
+	if opt.PoolTimeout == 0 {
 		return 1 * time.Second
 	}
 
-	return opt.poolTimeout
+	return opt.PoolTimeout
 }
 
 func (opt *Options) GetIdleTimeout() time.Duration {
-	return opt.idleTimeout
+	return opt.IdleTimeout
 }

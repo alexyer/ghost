@@ -51,7 +51,7 @@ func newConnPool(opt *Options) *connPool {
 }
 
 func (cp *connPool) closed() bool {
-	return atomic.LoadInt32(&p._closed) == 1
+	return atomic.LoadInt32(&cp._closed) == 1
 }
 
 func (cp *connPool) isIdle(c *conn) bool {
