@@ -37,6 +37,10 @@ type Options struct {
 	// Specifies the deadline for establishing new connections.
 	// If reached, dial will fail with a timeout.
 	DialTiemout time.Duration
+
+	// The maximum number of retries before giving up.
+	// Default is to not retry failed commands.
+	MaxRetries int
 }
 
 func (opt *Options) GetDialer() func() (net.Conn, error) {
@@ -94,4 +98,8 @@ func (opt *Options) GetPoolTimeout() time.Duration {
 
 func (opt *Options) GetIdleTimeout() time.Duration {
 	return opt.IdleTimeout
+}
+
+func (opt *Options) GetMaxRetries() int {
+	return opt.MaxRetries
 }

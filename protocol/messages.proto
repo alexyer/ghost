@@ -1,7 +1,7 @@
-package proto;
+package protocol;
 
 enum CommandId {
-    PONG = 0;
+    PING = 0;
 }
 
 message Command {

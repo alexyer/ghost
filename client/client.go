@@ -3,6 +3,9 @@ package client
 import (
 	"fmt"
 	"log"
+
+	"github.com/alexyer/ghost/protocol"
+	"github.com/golang/protobuf/proto"
 )
 
 type GhostClient struct {
@@ -44,9 +47,23 @@ func (c *GhostClient) putConn(cn *conn, ei error) {
 	}
 }
 
-func (c *GhostClient) process(cmd *Cmd) {
-	cmd.Val = "PONG"
-	cmd.Err = nil
+// TODO(alexyer): Implement proper error handling and result return.
+func (c *GhostClient) process(cmd *protocol.Command) {
+	for i := 0; i <= c.opt.GetMaxRetries(); i++ {
+		cn, _, err := c.conn()
+		if err != nil {
+			return
+		}
+		marshaledCmd, err := proto.Marshal(cmd)
+		if err != nil {
+			return
+		}
+
+		if _, err := cn.Write(marshaledCmd); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
 }
 
 // Close the client, releasing any open resources.
