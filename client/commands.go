@@ -5,17 +5,19 @@ const (
 )
 
 type processor struct {
-	process func(cmd Cmder)
+	process func(cmd *Cmd)
 }
 
-func (p *processor) Process(cmd Cmder) {
+func (p *processor) Process(cmd *Cmd) {
 	p.process(cmd)
 }
 
-func (p *processor) Ping() {
+func (p *processor) Ping() *Cmd {
 	cmd := &Cmd{
 		Cmd: PONG,
 	}
 
 	p.Process(cmd)
+
+	return cmd
 }

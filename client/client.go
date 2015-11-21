@@ -44,8 +44,9 @@ func (c *GhostClient) putConn(cn *conn, ei error) {
 	}
 }
 
-func (c *GhostClient) process(cmd Cmder) {
-	fmt.Println("process")
+func (c *GhostClient) process(cmd *Cmd) {
+	cmd.Val = "PONG"
+	cmd.Err = nil
 }
 
 // Close the client, releasing any open resources.

@@ -1,10 +1,5 @@
 package client
 
-type Cmder interface {
-	Reset()
-	Result() (string, error)
-}
-
 type Cmd struct {
 	Cmd  int
 	Args []string
