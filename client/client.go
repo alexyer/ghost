@@ -8,13 +8,18 @@ import (
 type GhostClient struct {
 	connPool pool
 	opt      *Options
+	processor
 }
 
 func New(opt *Options) *GhostClient {
-	return &GhostClient{
+	newClient := &GhostClient{
 		connPool: newConnPool(opt),
 		opt:      opt,
 	}
+
+	newClient.processor.process = newClient.process
+
+	return newClient
 }
 
 func (c *GhostClient) String() string {
@@ -39,7 +44,7 @@ func (c *GhostClient) putConn(cn *conn, ei error) {
 	}
 }
 
-func (c *GhostClient) process() {
+func (c *GhostClient) process(cmd Cmder) {
 	fmt.Println("process")
 }
 
