@@ -1,0 +1,10 @@
+package proto;
+
+enum CommandId {
+    PONG = 0;
+}
+
+message Command {
+    required CommandId commandId = 1;
+    repeated string args = 2;
+}
