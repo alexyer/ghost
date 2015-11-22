@@ -52,17 +52,34 @@ func (c *GhostClient) process(cmd *protocol.Command) {
 	for i := 0; i <= c.opt.GetMaxRetries(); i++ {
 		cn, _, err := c.conn()
 		if err != nil {
+			fmt.Println(err)
 			return
 		}
+
 		marshaledCmd, err := proto.Marshal(cmd)
 		if err != nil {
+			fmt.Println(err)
+			c.putConn(cn, err)
 			return
 		}
 
 		if _, err := cn.Write(marshaledCmd); err != nil {
 			fmt.Println(err)
+			c.putConn(cn, err)
 			return
 		}
+
+		resp := make([]byte, 4096)
+		if _, err := cn.Read(resp); err != nil {
+			fmt.Println(err)
+			c.putConn(cn, err)
+			return
+		}
+
+		fmt.Println(string(resp))
+
+		c.putConn(cn, err)
+		return
 	}
 }
 

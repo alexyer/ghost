@@ -3,7 +3,9 @@ package server
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
+	"time"
 )
 
 type Server struct {
@@ -53,5 +55,31 @@ func (s *Server) handle() {
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	fmt.Println(conn)
+	go func() {
+		client := newClient(conn)
+
+		// TODO(alexyer): Debug
+		fmt.Printf("New client: %v\n", client)
+
+		go s.handleCommand(client)
+	}()
+}
+
+func (s *Server) handleCommand(c *client) {
+	buf := make([]byte, 8)
+
+	for {
+		if _, err := c.Conn.Read(buf); err != nil {
+			c.Conn.Close()
+			return
+		}
+
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		time.Sleep(time.Duration(r.Intn(100)) * time.Millisecond)
+
+		if _, err := c.Conn.Write([]byte("response")); err != nil {
+			c.Conn.Close()
+			return
+		}
+	}
 }
