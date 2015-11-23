@@ -1,17 +1,22 @@
 package server
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 type client struct {
-	Conn  net.Conn
-	Wchan chan []byte
-	Rchan chan []byte
+	Conn   net.Conn
+	Buffer []byte
 }
 
-func newClient(conn net.Conn) *client {
+func newClient(conn net.Conn, bufSize int) *client {
 	return &client{
-		Conn:  conn,
-		Wchan: make(chan []byte),
-		Rchan: make(chan []byte),
+		Conn:   conn,
+		Buffer: make([]byte, bufSize),
 	}
+}
+
+func (c *client) String() string {
+	return fmt.Sprintf("Client<%s>", c.Conn.LocalAddr())
 }

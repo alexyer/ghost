@@ -9,13 +9,15 @@ import (
 )
 
 type Server struct {
-	Host string
-	Port int
+	Host          string
+	Port          int
+	ClientBufSize int
 }
 
 type GhostServerConfig struct {
-	Host string
-	Port int
+	Host          string
+	Port          int
+	ClientBufSize int
 }
 
 func GhostRun(config *GhostServerConfig) Server {
@@ -26,7 +28,11 @@ func GhostRun(config *GhostServerConfig) Server {
 		config.Port = 6869
 	}
 
-	s := Server{config.Host, config.Port}
+	if config.ClientBufSize == 0 {
+		config.ClientBufSize = 4096
+	}
+
+	s := Server{config.Host, config.Port, config.ClientBufSize}
 
 	log.Printf("Starting Ghost server on %s:%d", s.Host, s.Port)
 
@@ -56,7 +62,7 @@ func (s *Server) handle() {
 
 func (s *Server) handleConnection(conn net.Conn) {
 	go func() {
-		client := newClient(conn)
+		client := newClient(conn, s.ClientBufSize)
 
 		// TODO(alexyer): Debug
 		fmt.Printf("New client: %v\n", client)
@@ -66,10 +72,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) handleCommand(c *client) {
-	buf := make([]byte, 8)
-
 	for {
-		if _, err := c.Conn.Read(buf); err != nil {
+		if _, err := c.Conn.Read(c.Buffer); err != nil {
 			c.Conn.Close()
 			return
 		}
