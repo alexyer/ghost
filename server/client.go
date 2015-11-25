@@ -7,6 +7,7 @@ import (
 
 type client struct {
 	Conn   net.Conn
+	Header []byte
 	Buffer []byte
 }
 

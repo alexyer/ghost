@@ -9,15 +9,17 @@ import (
 )
 
 type Server struct {
-	Host          string
-	Port          int
-	ClientBufSize int
+	Host             string
+	Port             int
+	ClientHeaderSize int
+	ClientBufSize    int
 }
 
 type GhostServerConfig struct {
-	Host          string
-	Port          int
-	ClientBufSize int
+	Host             string
+	Port             int
+	ClientHeaderSize int
+	ClientBufSize    int
 }
 
 func GhostRun(config *GhostServerConfig) Server {
@@ -32,7 +34,11 @@ func GhostRun(config *GhostServerConfig) Server {
 		config.ClientBufSize = 4096
 	}
 
-	s := Server{config.Host, config.Port, config.ClientBufSize}
+	if config.ClientHeaderSize == 0 {
+		config.ClientHeaderSize = 4
+	}
+
+	s := Server{config.Host, config.Port, config.ClientHeaderSize, config.ClientBufSize}
 
 	log.Printf("Starting Ghost server on %s:%d", s.Host, s.Port)
 
