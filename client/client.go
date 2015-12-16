@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/alexyer/ghost/ghost"
 	"github.com/alexyer/ghost/protocol"
 	"github.com/golang/protobuf/proto"
 )
@@ -63,7 +64,9 @@ func (c *GhostClient) process(cmd *protocol.Command) {
 			return
 		}
 
-		if _, err := cn.Write(marshaledCmd); err != nil {
+		msgSize := ghost.IntToByteArray(int64(len(marshaledCmd)))
+
+		if _, err := cn.Write(append(msgSize, marshaledCmd...)); err != nil {
 			fmt.Println(err)
 			c.putConn(cn, err)
 			return
@@ -84,7 +87,7 @@ func (c *GhostClient) process(cmd *protocol.Command) {
 }
 
 // Close the client, releasing any open resources.
-// It is rare to Close a Client, as the Clientt is meant to be
+// It is rare to Close a Client, as the Client is meant to be
 // long-lived and shared between many goroutines.
 func (c *GhostClient) Close() error {
 	return c.connPool.Close()

@@ -2,10 +2,9 @@ package server
 
 import (
 	"fmt"
+	"io"
 	"log"
-	"math/rand"
 	"net"
-	"time"
 )
 
 type Server struct {
@@ -35,7 +34,7 @@ func GhostRun(config *GhostServerConfig) Server {
 	}
 
 	if config.ClientHeaderSize == 0 {
-		config.ClientHeaderSize = 4
+		config.ClientHeaderSize = 8
 	}
 
 	s := Server{config.Host, config.Port, config.ClientHeaderSize, config.ClientBufSize}
@@ -68,7 +67,7 @@ func (s *Server) handle() {
 
 func (s *Server) handleConnection(conn net.Conn) {
 	go func() {
-		client := newClient(conn, s.ClientBufSize)
+		client := newClient(conn, s, s.ClientHeaderSize, s.ClientBufSize)
 
 		// TODO(alexyer): Debug
 		fmt.Printf("New client: %v\n", client)
@@ -79,17 +78,34 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 func (s *Server) handleCommand(c *client) {
 	for {
-		if _, err := c.Conn.Read(c.Buffer); err != nil {
+		if err := s.read(c.Conn, c.Header); err != nil {
+			log.Print(err)
 			c.Conn.Close()
 			return
 		}
 
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		time.Sleep(time.Duration(r.Intn(100)) * time.Millisecond)
+		if err := s.read(c.Conn, c.Buffer); err != nil {
+			log.Print(err)
+			c.Conn.Close()
+			return
+		}
 
-		if _, err := c.Conn.Write([]byte("response")); err != nil {
+		res, _ := c.Exec()
+
+		if _, err := c.Conn.Write([]byte(res)); err != nil {
 			c.Conn.Close()
 			return
 		}
 	}
+}
+
+func (s *Server) read(conn net.Conn, buf []byte) error {
+	// TODO(alexyer): Implement proper error handling
+	if _, err := conn.Read(buf); err != nil {
+		if err != io.EOF {
+			return err
+		}
+	}
+
+	return nil
 }
