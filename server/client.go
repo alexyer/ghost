@@ -30,13 +30,16 @@ func (c *client) String() string {
 	return fmt.Sprintf("Client<%s>", c.Conn.LocalAddr())
 }
 
-func (c *client) Exec() (result string, err error) {
-	cmd := new(protocol.Command)
+func (c *client) Exec() (reply []byte, err error) {
+	var (
+		result []string
+		cmd    = new(protocol.Command)
+	)
 
 	cmdLen, _ := ghost.ByteArrayToUint64(c.Header)
 
 	if err := proto.Unmarshal(c.Buffer[:cmdLen], cmd); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	switch *cmd.CommandId {
@@ -46,5 +49,20 @@ func (c *client) Exec() (result string, err error) {
 		err = errors.New("ghost: unknown command")
 	}
 
-	return
+	return c.encodeReply(result, err)
+}
+
+func (c *client) encodeReply(values []string, err error) ([]byte, error) {
+	var errMsg string
+
+	if err != nil {
+		errMsg = err.Error()
+	} else {
+		errMsg = ""
+	}
+
+	return proto.Marshal(&protocol.Reply{
+		Values: values,
+		Error:  &errMsg,
+	})
 }

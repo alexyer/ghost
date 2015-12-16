@@ -69,7 +69,7 @@ func (s *Server) handleCommand(c *client) {
 			return
 		}
 
-		if _, err := c.Conn.Write([]byte(res)); err != nil {
+		if _, err := c.Conn.Write(res); err != nil {
 			c.Conn.Close()
 			return
 		}

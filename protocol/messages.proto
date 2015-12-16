@@ -10,6 +10,6 @@ message Command {
 }
 
 message Reply {
-    repeated string value = 1;
+    repeated string values = 1;
     required string error = 2;
 }
