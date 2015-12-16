@@ -8,3 +8,8 @@ message Command {
     required CommandId commandId = 1;
     repeated string args = 2;
 }
+
+message Reply {
+    repeated string value = 1;
+    required string error = 2;
+}
