@@ -17,12 +17,12 @@ type client struct {
 	Buffer []byte
 }
 
-func newClient(conn net.Conn, s *Server, headerSize, bufSize int) *client {
+func newClient(conn net.Conn, s *Server) *client {
 	return &client{
 		Conn:   conn,
 		Server: s,
-		Header: make([]byte, headerSize),
-		Buffer: make([]byte, bufSize),
+		Header: make([]byte, s.opt.GetClientHeaderSize()),
+		Buffer: make([]byte, s.opt.GetClientBufSize()),
 	}
 }
 

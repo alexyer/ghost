@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	"github.com/alexyer/ghost/server"
 )
@@ -18,8 +19,5 @@ func init() {
 
 func main() {
 	flag.Parse()
-	server.GhostRun(&server.GhostServerConfig{
-		Host: host,
-		Port: port,
-	})
+	server.GhostRun(&server.Options{Addr: fmt.Sprintf("%s:%d", host, port)})
 }

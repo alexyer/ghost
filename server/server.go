@@ -1,45 +1,19 @@
 package server
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
 )
 
 type Server struct {
-	Host             string
-	Port             int
-	ClientHeaderSize int
-	ClientBufSize    int
+	opt *Options
 }
 
-type GhostServerConfig struct {
-	Host             string
-	Port             int
-	ClientHeaderSize int
-	ClientBufSize    int
-}
+func GhostRun(opt *Options) Server {
+	s := Server{opt: opt}
 
-func GhostRun(config *GhostServerConfig) Server {
-	if config.Host == "" {
-		config.Host = "localhost"
-	}
-	if config.Port == 0 {
-		config.Port = 6869
-	}
-
-	if config.ClientBufSize == 0 {
-		config.ClientBufSize = 4096
-	}
-
-	if config.ClientHeaderSize == 0 {
-		config.ClientHeaderSize = 8
-	}
-
-	s := Server{config.Host, config.Port, config.ClientHeaderSize, config.ClientBufSize}
-
-	log.Printf("Starting Ghost server on %s:%d", s.Host, s.Port)
+	log.Printf("Starting Ghost server on %s", s.opt.GetAddr())
 
 	s.handle()
 
@@ -47,7 +21,7 @@ func GhostRun(config *GhostServerConfig) Server {
 }
 
 func (s *Server) handle() {
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.Host, s.Port))
+	ln, err := net.Listen("tcp", s.opt.GetAddr())
 
 	if err != nil {
 		log.Fatal(err)
@@ -67,11 +41,7 @@ func (s *Server) handle() {
 
 func (s *Server) handleConnection(conn net.Conn) {
 	go func() {
-		client := newClient(conn, s, s.ClientHeaderSize, s.ClientBufSize)
-
-		// TODO(alexyer): Debug
-		fmt.Printf("New client: %v\n", client)
-
+		client := newClient(conn, s)
 		go s.handleCommand(client)
 	}()
 }
@@ -84,13 +54,20 @@ func (s *Server) handleCommand(c *client) {
 			return
 		}
 
+		// Read command to client buffer
 		if err := s.read(c.Conn, c.Buffer); err != nil {
 			log.Print(err)
 			c.Conn.Close()
 			return
 		}
 
-		res, _ := c.Exec()
+		res, err := c.Exec()
+
+		if err != nil {
+			log.Print(err)
+			c.Conn.Close()
+			return
+		}
 
 		if _, err := c.Conn.Write([]byte(res)); err != nil {
 			c.Conn.Close()
