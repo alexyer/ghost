@@ -62,3 +62,17 @@ func (p *processor) Get(key string) (string, error) {
 
 	return reply.Values[0], nil
 }
+
+// DEL command.
+// DEL <key> <val>
+func (p *processor) Del(key string) {
+	cmdId := protocol.CommandId_DEL
+
+	cmd := &protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{key},
+	}
+
+	p.process(cmd)
+	return
+}

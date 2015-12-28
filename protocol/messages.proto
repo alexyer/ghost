@@ -4,6 +4,7 @@ enum CommandId {
     PING = 0;
     SET = 1;
     GET = 2;
+    DEL = 3;
 }
 
 message Command {

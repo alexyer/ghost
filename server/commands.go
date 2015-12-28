@@ -33,3 +33,14 @@ func (c *client) Get(cmd *protocol.Command) ([]string, error) {
 
 	return []string{val}, nil
 }
+
+// DEL command.
+// DEL <key>
+func (c *client) Del(cmd *protocol.Command) ([]string, error) {
+	if len(cmd.Args) != 1 {
+		return nil, GhostCmdError("DEL", "wrong arguments")
+	}
+
+	c.collection.Del(cmd.Args[0])
+	return nil, nil
+}
