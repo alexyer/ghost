@@ -34,8 +34,7 @@ func (c *client) String() string {
 
 func (c *client) Exec() (reply []byte, err error) {
 	var (
-		result []string
-		cmd    = new(protocol.Command)
+		cmd = new(protocol.Command)
 	)
 
 	cmdLen, _ := ghost.ByteArrayToUint64(c.MsgHeader)
@@ -44,6 +43,12 @@ func (c *client) Exec() (reply []byte, err error) {
 		return nil, err
 	}
 
+	result, err := c.execCmd(cmd)
+
+	return c.encodeReply(result, err)
+}
+
+func (c *client) execCmd(cmd *protocol.Command) (result []string, err error) {
 	switch *cmd.CommandId {
 	case protocol.CommandId_PING:
 		result, err = c.Ping()
@@ -61,7 +66,7 @@ func (c *client) Exec() (reply []byte, err error) {
 		err = errors.New("ghost: unknown command")
 	}
 
-	return c.encodeReply(result, err)
+	return result, err
 }
 
 func (c *client) encodeReply(values []string, err error) ([]byte, error) {
