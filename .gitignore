@@ -32,3 +32,5 @@ _testmain.go
 Session.vim
 .netrwhist
 *~
+
+ghost_server
