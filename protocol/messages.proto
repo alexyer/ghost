@@ -1,0 +1,20 @@
+package protocol;
+
+enum CommandId {
+    PING = 0;
+    SET = 1;
+    GET = 2;
+    DEL = 3;
+    CGET = 4;
+    CADD = 5;
+}
+
+message Command {
+    required CommandId commandId = 1;
+    repeated string args = 2;
+}
+
+message Reply {
+    repeated string values = 1;
+    required string error = 2;
+}
