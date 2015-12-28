@@ -3,6 +3,7 @@ package protocol;
 enum CommandId {
     PING = 0;
     SET = 1;
+    GET = 2;
 }
 
 message Command {
