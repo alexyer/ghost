@@ -44,3 +44,22 @@ func (c *client) Del(cmd *protocol.Command) ([]string, error) {
 	c.collection.Del(cmd.Args[0])
 	return nil, nil
 }
+
+// CGET command.
+// CGET <collection name>
+// Change user's collection.
+func (c *client) CGet(cmd *protocol.Command) ([]string, error) {
+	if len(cmd.Args) != 1 {
+		return nil, GhostCmdError("CGET", "wrong arguments")
+	}
+
+	newCollection := c.Server.storage.GetCollection(cmd.Args[0])
+
+	if newCollection == nil {
+		return nil, GhostCmdError("CGET", "collection does not exist")
+	}
+
+	c.collection = newCollection
+
+	return nil, nil
+}

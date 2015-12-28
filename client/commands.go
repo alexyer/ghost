@@ -76,3 +76,27 @@ func (p *processor) Del(key string) {
 	p.process(cmd)
 	return
 }
+
+// CGET command.
+// CGET <collection name>
+// Change user's collection.
+func (p *processor) CGet(collectionName string) (string, error) {
+	cmdId := protocol.CommandId_CGET
+
+	cmd := &protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{collectionName},
+	}
+
+	reply, err := p.process(cmd)
+
+	if err != nil {
+		return "", err
+	}
+
+	if *reply.Error != "" {
+		return "", errors.New(*reply.Error)
+	}
+
+	return "", nil
+}
