@@ -6,7 +6,7 @@ package ghost
 import "errors"
 
 type Storage struct {
-	collections map[string]*collection
+	collections map[string]*Collection
 }
 
 var storageInstance *Storage = nil
@@ -15,7 +15,7 @@ var storageInstance *Storage = nil
 func GetStorage() *Storage {
 	if storageInstance == nil {
 		storageInstance = &Storage{}
-		storageInstance.collections = make(map[string]*collection)
+		storageInstance.collections = make(map[string]*Collection)
 		storageInstance.collections["main"] = newCollection("main")
 	}
 
@@ -24,12 +24,12 @@ func GetStorage() *Storage {
 
 // Get collection from the Storage.
 // Return *colleciton or nil.
-func (s *Storage) GetCollection(name string) *collection {
+func (s *Storage) GetCollection(name string) *Collection {
 	return s.collections[name]
 }
 
 // Add new collection to the Storage.
-func (s *Storage) AddCollection(name string) (*collection, error) {
+func (s *Storage) AddCollection(name string) (*Collection, error) {
 	if s.collections[name] != nil {
 		return nil, errors.New("Collection already exists")
 	}

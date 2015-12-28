@@ -4,14 +4,20 @@ import (
 	"io"
 	"log"
 	"net"
+
+	"github.com/alexyer/ghost/ghost"
 )
 
 type Server struct {
-	opt *Options
+	opt     *Options
+	storage *ghost.Storage
 }
 
 func GhostRun(opt *Options) Server {
-	s := Server{opt: opt}
+	s := Server{
+		opt:     opt,
+		storage: ghost.GetStorage(),
+	}
 
 	log.Printf("Starting Ghost server on %s", s.opt.GetAddr())
 
@@ -48,14 +54,14 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 func (s *Server) handleCommand(c *client) {
 	for {
-		if err := s.read(c.Conn, c.Header); err != nil {
+		if err := s.read(c.Conn, c.MsgHeader); err != nil {
 			log.Print(err)
 			c.Conn.Close()
 			return
 		}
 
 		// Read command to client buffer
-		if err := s.read(c.Conn, c.Buffer); err != nil {
+		if err := s.read(c.Conn, c.MsgBuffer); err != nil {
 			log.Print(err)
 			c.Conn.Close()
 			return
@@ -69,7 +75,9 @@ func (s *Server) handleCommand(c *client) {
 			return
 		}
 
-		if _, err := c.Conn.Write(res); err != nil {
+		replySize := ghost.IntToByteArray(int64(len(res)))
+
+		if _, err := c.Conn.Write(append(replySize, res...)); err != nil {
 			c.Conn.Close()
 			return
 		}
