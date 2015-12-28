@@ -100,3 +100,27 @@ func (p *processor) CGet(collectionName string) (string, error) {
 
 	return "", nil
 }
+
+// CADD command.
+// CADD <collection name>
+// Add new collection.
+func (p *processor) CAdd(collectionName string) (string, error) {
+	cmdId := protocol.CommandId_CADD
+
+	cmd := &protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{collectionName},
+	}
+
+	reply, err := p.process(cmd)
+
+	if err != nil {
+		return "", err
+	}
+
+	if *reply.Error != "" {
+		return "", errors.New(*reply.Error)
+	}
+
+	return "", nil
+}

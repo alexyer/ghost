@@ -63,3 +63,20 @@ func (c *client) CGet(cmd *protocol.Command) ([]string, error) {
 
 	return nil, nil
 }
+
+// CADD command.
+// CADD <collection name>
+// Add new collection.
+func (c *client) CAdd(cmd *protocol.Command) ([]string, error) {
+	if len(cmd.Args) != 1 {
+		return nil, GhostCmdError("CADD", "wrong arguments")
+	}
+
+	_, err := c.Server.storage.AddCollection(cmd.Args[0])
+
+	if err != nil {
+		return nil, GhostCmdError("CADD", err.Error())
+	}
+
+	return nil, nil
+}

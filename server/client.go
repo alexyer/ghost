@@ -55,6 +55,8 @@ func (c *client) Exec() (reply []byte, err error) {
 		result, err = c.Del(cmd)
 	case protocol.CommandId_CGET:
 		result, err = c.CGet(cmd)
+	case protocol.CommandId_CADD:
+		result, err = c.CAdd(cmd)
 	default:
 		err = errors.New("ghost: unknown command")
 	}

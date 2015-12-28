@@ -6,6 +6,7 @@ enum CommandId {
     GET = 2;
     DEL = 3;
     CGET = 4;
+    CADD = 5;
 }
 
 message Command {
