@@ -1,3 +1,8 @@
+## 0.3.0
+  * Implement basic server
+  * Implement client
+  * Sources structure refactoring
+
 ## 0.2.0
   * Implement Striped Hash algorithm
   * Implement FNV-1a hash function

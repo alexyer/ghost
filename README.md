@@ -1,20 +1,25 @@
 [![Build Status](https://travis-ci.org/alexyer/ghost.svg?branch=master)](https://travis-ci.org/alexyer/ghost)
 [![Coverage Status](https://coveralls.io/repos/alexyer/ghost/badge.svg?branch=master&service=github)](https://coveralls.io/github/alexyer/ghost?branch=master)
 
-## Ghost
+# Ghost
 Yet another in-memory key/value storage written in Go.
 
-## Description
+### Description
 Simple key/value storage based on implementation of striped hashmap data structure.
 Yes, it has terrible performance, the point was to make something simple to get more comfortabe with Go language.
 I hope to improve it one day...or not.
 
-## Features
+### Features
   * Concurrency safe
   * Slow
   * ACID - seriously, how do you think? ;)
+  * Written in pure Go
+  * Could be used as embedded storage
+  * Could be run as standalone server
 
-## Benchmark
+## Embedded
+
+### Benchmark
 Ghost hashmap
 
 ```
@@ -53,7 +58,8 @@ BenchmarkNativeGet-2            10000000               116 ns/op
 BenchmarkNativeDel-2            30000000                43.7 ns/op
 ```
 
-## Example
+### Example
+
 ```go
 package main
 
@@ -78,6 +84,52 @@ func main() {
         fmt.Println(val)
 
         mainCollection.Del("somekey") // Delete item
+}
+```
+
+## Server
+Server is under development. The main limitation - server does not accept messages more that 4KB.
+Will be fixed in future versions.
+
+Run server:
+```sh
+ghost -host localhost -port 6869
+```
+
+### Commands
+
+Hash commands:
+  * PING -- Test command. Returns "Pong!".
+  * SET <key> <value> -- Set create or update <key> with <value>.
+  * GET <key> -- Get value of the <key>.
+  * DEL <key> -- Delete key <key>.
+
+Collection commands:
+  * CGET <collection name> -- Change user's collection.
+  * CADD <collection name> -- Create new collection.
+
+### Client
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/alexyer/ghost/client"
+)
+
+func main() {
+    // Create new client and connect to the Ghost server.
+	ghost := client.New(&client.Options{
+		Addr: "localhost:6869",
+	})
+
+	ghost.Set("key1", "val2")      // Set key
+	res, err := ghost.Get("key1")  // Get key
+	ghost.Del("key1")              // Del key
+
+	ghost.CAdd("new-collection")  // Create new collection
+	ghost.CGet("new-collection")  // Change client collection
 }
 ```
 

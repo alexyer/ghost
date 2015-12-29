@@ -2,7 +2,7 @@ package ghost
 
 import "testing"
 
-var c *collection
+var c *Collection
 
 func init() {
 	c = newCollection("Test Collection")
