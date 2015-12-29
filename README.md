@@ -100,9 +100,9 @@ ghost -host localhost -port 6869
 
 Hash commands:
   * PING -- Test command. Returns "Pong!".
-  * SET <key> <value> -- Set create or update <key> with <value>.
-  * GET <key> -- Get value of the <key>.
-  * DEL <key> -- Delete key <key>.
+  * SET &lt;key&gt; &lt;value&gt; -- Set create or update &lt;key&gt; with &lt;value&gt;.
+  * GET &lt;key&gt; -- Get value of the &lt;key&gt;.
+  * DEL &lt;key&gt; -- Delete key &lt;key&gt;.
 
 Collection commands:
   * CGET <collection name> -- Change user's collection.
