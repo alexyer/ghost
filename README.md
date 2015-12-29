@@ -13,7 +13,7 @@ I hope to improve it one day...or not.
   * Concurrency safe
   * Slow
   * ACID - seriously, how do you think? ;)
-  * Written in Go. No dependecies
+  * Written in pure Go
   * Could be used as embedded storage
   * Could be run as standalone server
 
