@@ -99,15 +99,17 @@ ghost -host localhost -port 6869
 
 ### Commands
 
-Hash commands:
+Server commands:
   * PING -- Test command. Returns "Pong!".
+
+Hash commands:
   * SET &lt;key&gt; &lt;value&gt; -- Set create or update &lt;key&gt; with &lt;value&gt;.
   * GET &lt;key&gt; -- Get value of the &lt;key&gt;.
   * DEL &lt;key&gt; -- Delete key &lt;key&gt;.
 
 Collection commands:
-  * CGET <collection name> -- Change user's collection.
-  * CADD <collection name> -- Create new collection.
+  * CGET &lt;collection name&gt; -- Change user's collection.
+  * CADD &lt;collection name&gt; -- Create new collection.
 
 ### Client
 ```go
