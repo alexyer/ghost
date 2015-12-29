@@ -133,6 +133,11 @@ func main() {
 }
 ```
 
+## TODO
+  * Implement CLI
+  * Improve storage performance
+  * Improve server and get rid of limitations
+
 ## Contributing
 It's learing project, so there are possible a lot of issues, espesially in concurrent code,
 so any improvements, critics or propsals are highly appretiated.
