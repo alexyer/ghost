@@ -179,5 +179,5 @@ func (h *hashMap) nodes() <-chan node {
 
 // Get index of bucket key belongs to.
 func (h *hashMap) getIndex(key string) uint32 {
-	return FNV1a_32([]byte(key)) % h.Size
+	return FNV1a_32([]byte(key)) & (h.Size - 1)
 }

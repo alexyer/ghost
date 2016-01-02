@@ -1,3 +1,6 @@
+## 0.3.1
+  * Small optimization of hasmap.getIndex method.
+
 ## 0.3.0
   * Implement basic server
   * Implement client

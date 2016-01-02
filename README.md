@@ -23,40 +23,41 @@ I hope to improve it one day...or not.
 ### Benchmark
 Ghost hashmap
 
+
 ```
-BenchmarkSet-2                    100000             10775 ns/op
-BenchmarkGet-2                   5000000               277 ns/op
-BenchmarkDel-2                   5000000               226 ns/op
+BenchmarkSet-2                    100000             12548 ns/op
+BenchmarkGet-2                   3000000               338 ns/op
+BenchmarkDel-2                   5000000               220 ns/op
 ```
 
 Ghost concurrent hashmap
 
 ```
-BenchmarkParallelSet-2            200000              9608 ns/op
-BenchmarkParallelSet8-2           100000             11740 ns/op
-BenchmarkParallelSet64-2          100000             11315 ns/op
-BenchmarkParallelSet128-2         100000             11140 ns/op
-BenchmarkParallelSet1024-2        100000             12608 ns/op
+BenchmarkParallelSet-2            100000             12018 ns/op
+BenchmarkParallelSet8-2           100000             10829 ns/op
+BenchmarkParallelSet64-2          100000             11312 ns/op
+BenchmarkParallelSet128-2         100000             10686 ns/op
+BenchmarkParallelSet1024-2        100000             12008 ns/op
 
-BenchmarkParallelGet-2           5000000               307 ns/op
-BenchmarkParallelGet8-2          5000000               320 ns/op
-BenchmarkParallelGet64-2         5000000               321 ns/op
-BenchmarkParallelGet128-2        5000000               321 ns/op
-BenchmarkParallelGet1024-2       3000000               359 ns/op
+BenchmarkParallelGet-2           5000000               281 ns/op
+BenchmarkParallelGet8-2          5000000               300 ns/op
+BenchmarkParallelGet64-2         5000000               286 ns/op
+BenchmarkParallelGet128-2        5000000               290 ns/op
+BenchmarkParallelGet1024-2       5000000               326 ns/op
 
-BenchmarkParallelDel-2          10000000               195 ns/op
+BenchmarkParallelDel-2          10000000               220 ns/op
 BenchmarkParallelDel8-2         10000000               201 ns/op
-BenchmarkParallelDel64-2        10000000               207 ns/op
-BenchmarkParallelDel128-2       10000000               201 ns/op
-BenchmarkParallelDel1024-2      10000000               212 ns/op
+BenchmarkParallelDel64-2        10000000               200 ns/op
+BenchmarkParallelDel128-2       10000000               203 ns/op
+BenchmarkParallelDel1024-2      10000000               219 ns/op
 ```
 
 Native hashmap
 
 ```
-BenchmarkNativeSet-2             1000000              2137 ns/op
-BenchmarkNativeGet-2            10000000               116 ns/op
-BenchmarkNativeDel-2            30000000                43.7 ns/op
+BenchmarkNativeSet-2             1000000              2184 ns/op
+BenchmarkNativeGet-2            10000000               117 ns/op
+BenchmarkNativeDel-2            20000000                50.6 ns/op
 ```
 
 ### Example
