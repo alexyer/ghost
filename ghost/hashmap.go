@@ -3,181 +3,120 @@ package ghost
 
 import (
 	"errors"
-	"sync"
+	"sync/atomic"
+	"unsafe"
 )
 
 const (
-	initSize  uint32  = 64   // Default number of buckets
-	threshold float32 = 0.75 // Threshold load factor to rehash table
+	THRESHOLD float64 = 0.75 // Threshold load factor to rehash table
 )
 
-type node struct {
-	Key string
-	Val string
-}
-
-type bucket struct {
-	vector
-}
-
 type hashMap struct {
-	Count   uint32 // Number of elements in hashmap
-	CountMu sync.Mutex
-	Size    uint32       // Number of buckets in hashmap
-	buckets []bucket     // Array of indiviual buckets in hashmap
-	locks   []sync.Mutex // Array of locks. Used to syncronize bucket access
+	Len     uint32    // Number of elements in hashmap
+	Cap     uint32    // Number of buckets in hashmap
+	buckets []*bucket // Array of indiviual buckets in hashmap
 }
 
-func NewHashMap() *hashMap {
-	newTable := &hashMap{}
+func NewHashMap(capacity int) *hashMap {
+	newHash := &hashMap{
+		Len:     0,
+		Cap:     2,
+		buckets: make([]*bucket, capacity),
+	}
 
-	newTable.buckets = make([]bucket, initSize)
+	tail := &node{
+		Key:  ^uint32(0),
+		next: nil,
+	}
 
-	newTable.locks = make([]sync.Mutex, initSize)
+	head := &node{
+		Key:  0,
+		next: unsafe.Pointer(tail),
+	}
 
-	newTable.Size = initSize
-
-	return newTable
+	newHash.buckets[0] = &bucket{
+		head: unsafe.Pointer(head),
+	}
+	return newHash
 }
 
 // Set or update key.
-func (h *hashMap) Set(key, val string) {
-	if h.loadFactor() >= threshold {
-		h.rehash()
+func (h *hashMap) Set(strKey, val string) {
+	key := GetHash(strKey)
+
+	node := &node{
+		Key: Regularkey(key),
+		Val: val,
 	}
 
-	index := h.getIndex(key)
+	bucketIndex := key & (atomic.LoadUint32(&h.Cap) - 1)
 
-	h.acquire(index)
-
-	bucketIndex := h.buckets[index].Find(key)
-
-	if bucketIndex < 0 {
-		h.buckets[index].Push(node{key, val})
-
-		h.CountMu.Lock()
-		h.Count++
-		h.CountMu.Unlock()
-	} else {
-		h.buckets[index].Nodes[bucketIndex].Val = val
+	if h.buckets[bucketIndex] == nil {
+		h.initializeBucket(bucketIndex)
 	}
 
-	h.release(index)
+	if h.buckets[bucketIndex].add(node) {
+		if float64(atomic.AddUint32(&h.Len, 1))/float64(atomic.LoadUint32(&h.Cap)) > THRESHOLD {
+			atomic.StoreUint32(&h.Cap, h.Cap<<1)
+		}
+	}
 }
 
 // Get element from the hashmap.
 // Return error if value is not found.
-func (h *hashMap) Get(key string) (string, error) {
-	index := h.getIndex(key)
+func (h *hashMap) Get(strKey string) (string, error) {
+	key := GetHash(strKey)
 
-	h.acquire(index)
+	bucketIndex := key & (atomic.LoadUint32(&h.Cap) - 1)
 
-	bucketIndex := h.buckets[index].Find(key)
-
-	if bucketIndex < 0 {
-		h.release(index)
-		return "", errors.New("No value")
-	} else {
-		val := h.buckets[index].Nodes[bucketIndex].Val
-		h.release(index)
-
-		return val, nil
+	if h.buckets[bucketIndex] == nil {
+		h.initializeBucket(bucketIndex)
 	}
+
+	item := h.buckets[bucketIndex].get(Regularkey(key))
+
+	if item == nil {
+		return "", errors.New("ghost: no such key")
+	}
+
+	return item.Val, nil
 }
 
 // Delete element from the hashmap.
-func (h *hashMap) Del(key string) {
-	index := h.getIndex(key)
+func (h *hashMap) Del(strKey string) {
+	key := GetHash(strKey)
 
-	h.acquire(index)
+	bucketIndex := key & (atomic.LoadUint32(&h.Cap) - 1)
 
-	bucketIndex := h.buckets[index].Find(key)
-
-	if bucketIndex < 0 {
-		h.release(index)
-		return
+	if h.buckets[bucketIndex] == nil {
+		h.initializeBucket(bucketIndex)
 	}
 
-	h.buckets[index].Pop(bucketIndex)
-
-	h.CountMu.Lock()
-	h.Count--
-	h.CountMu.Unlock()
-
-	h.release(index)
+	h.buckets[bucketIndex].remove(Regularkey(key))
 }
 
-// Get current load factor.
-func (h *hashMap) loadFactor() float32 {
-	h.CountMu.Lock()
-	factor := float32(h.Count) / float32(h.Size)
-	h.CountMu.Unlock()
+// The role of initializeBucket is to direct the pointer
+// in the array cell of the index bucket.
+func (h *hashMap) initializeBucket(index uint32) {
+	parentIndex := h.getParentIndex(index)
 
-	return factor
-}
+	if h.buckets[parentIndex] == nil {
+		h.initializeBucket(parentIndex)
+	}
 
-// Acquire control on the bucket.
-func (h *hashMap) acquire(index uint32) {
-	h.locks[index%uint32(len(h.locks))].Lock()
-}
+	dummy := h.buckets[parentIndex].getDummy(index)
 
-// Release control on the bucket.
-func (h *hashMap) release(index uint32) {
-	h.locks[index%uint32(len(h.locks))].Unlock()
-}
-
-func (h *hashMap) acquireAll() {
-	for i := 0; i < len(h.locks); i++ {
-		h.locks[i].Lock()
+	if dummy != nil {
+		h.buckets[index] = dummy
 	}
 }
 
-func (h *hashMap) releaseAll() {
-	for i := len(h.locks) - 1; i >= 0; i-- {
-		h.locks[i].Unlock()
-	}
-}
+func (h *hashMap) getParentIndex(bucketIndex uint32) uint32 {
+	parentIndex := atomic.LoadUint32(&h.Cap)
 
-// Allocate new bigger hashmap and rehash all keys.
-func (h *hashMap) rehash() {
-	oldSize := h.Size
-
-	h.acquireAll()
-
-	if oldSize != h.Size {
-		h.releaseAll()
-		return // Someone beat us to it
+	for parentIndex > bucketIndex {
+		parentIndex = parentIndex >> 1
 	}
 
-	h.Size <<= 1
-	newBuckets := make([]bucket, h.Size)
-
-	for n := range h.nodes() {
-		newBuckets[h.getIndex(n.Key)].Push(n)
-	}
-
-	h.buckets = newBuckets
-
-	h.releaseAll()
-}
-
-// Navigate through all nodes
-func (h *hashMap) nodes() <-chan node {
-	ch := make(chan node)
-
-	go func() {
-		for _, b := range h.buckets {
-			for i := 0; i < b.count; i++ {
-				ch <- b.Nodes[i]
-			}
-		}
-		close(ch)
-	}()
-
-	return ch
-}
-
-// Get index of bucket key belongs to.
-func (h *hashMap) getIndex(key string) uint32 {
-	return FNV1a_32([]byte(key)) & (h.Size - 1)
+	return bucketIndex - parentIndex
 }
