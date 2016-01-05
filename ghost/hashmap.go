@@ -1,4 +1,5 @@
-// Implementation of Striped Hashmap data structure.
+// Implementation of Lock-free split ordered hashmap.
+// For details refer to Shalev & Shavit "Split-Ordered Lists - Lock-free Resizable Hash Tables" work.
 package ghost
 
 import (
