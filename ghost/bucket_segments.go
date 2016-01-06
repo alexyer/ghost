@@ -59,10 +59,13 @@ func (bs *bucketSegments) setBucket(bucketIndex uint32, newBucket *bucket) {
 	for {
 		if segmentIndex >= atomic.LoadUint32(&bs.length) {
 			oldSegments := *(*[]*segment)(bs.segments)
+			newLen := atomic.LoadUint32(&bs.length) << 1
+			newSegments := make([]*segment, newLen)
 
-			newSegments := append(oldSegments, make([]*segment, bs.length<<1)...)
+			copy(newSegments, oldSegments)
+
 			if atomic.CompareAndSwapPointer(&bs.segments, unsafe.Pointer(bs.segments), unsafe.Pointer(&newSegments)) {
-				atomic.AddUint32(&bs.length, 1)
+				atomic.StoreUint32(&bs.length, newLen)
 				break
 			}
 		}
