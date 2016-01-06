@@ -24,7 +24,7 @@ func newSegment() unsafe.Pointer {
 	})
 }
 
-func NewBucketSegments() *bucketSegments {
+func newBucketSegments() *bucketSegments {
 	segments := make([]unsafe.Pointer, 1)
 	segments[0] = newSegment()
 
@@ -53,11 +53,11 @@ func (bs *bucketSegments) getBucket(bucketIndex uint32) *bucket {
 	return buckets[bucketIndex&(SEGMENT_SIZE-1)]
 }
 
-func (bs *bucketSegments) setBucket(bucketIndex uint32, head *node) {
+func (bs *bucketSegments) setBucket(bucketIndex uint32, newBucket *bucket) {
 	segmentIndex := bucketIndex / SEGMENT_SIZE
 
 	for {
-		if segmentIndex >= bs.length {
+		if segmentIndex >= atomic.LoadUint32(&bs.length) {
 			oldSegments := *(*[]*segment)(bs.segments)
 
 			newSegments := append(oldSegments, make([]*segment, bs.length<<1)...)
@@ -66,6 +66,7 @@ func (bs *bucketSegments) setBucket(bucketIndex uint32, head *node) {
 				break
 			}
 		}
+		break
 	}
 
 	segments := *(*[]unsafe.Pointer)(bs.segments)
@@ -76,7 +77,5 @@ func (bs *bucketSegments) setBucket(bucketIndex uint32, head *node) {
 
 	seg := (*segment)(segments[segmentIndex])
 	buckets := *(*[]*bucket)(seg.buckets)
-	buckets[bucketIndex&(SEGMENT_SIZE-1)] = &bucket{
-		head: unsafe.Pointer(head),
-	}
+	buckets[bucketIndex&(SEGMENT_SIZE-1)] = newBucket
 }

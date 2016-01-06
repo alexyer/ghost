@@ -13,16 +13,16 @@ const (
 )
 
 type hashMap struct {
-	Len     uint32    // Number of elements in hashmap
-	Cap     uint32    // Number of buckets in hashmap
-	buckets []*bucket // Array of indiviual buckets in hashmap
+	Len            uint32          // Number of elements in hashmap
+	Cap            uint32          // Number of buckets in hashmap
+	bucketSegments *bucketSegments // Array of indiviual buckets in hashmap
 }
 
-func NewHashMap(capacity int) *hashMap {
+func NewHashMap() *hashMap {
 	newHash := &hashMap{
-		Len:     0,
-		Cap:     2,
-		buckets: make([]*bucket, capacity),
+		Len:            0,
+		Cap:            2,
+		bucketSegments: newBucketSegments(),
 	}
 
 	tail := &node{
@@ -35,9 +35,9 @@ func NewHashMap(capacity int) *hashMap {
 		next: unsafe.Pointer(tail),
 	}
 
-	newHash.buckets[0] = &bucket{
+	newHash.bucketSegments.setBucket(0, &bucket{
 		head: unsafe.Pointer(head),
-	}
+	})
 	return newHash
 }
 
@@ -50,13 +50,9 @@ func (h *hashMap) Set(strKey, val string) {
 		Val: val,
 	}
 
-	bucketIndex := key & (atomic.LoadUint32(&h.Cap) - 1)
+	bucket := h.getBucket(key)
 
-	if h.buckets[bucketIndex] == nil {
-		h.initializeBucket(bucketIndex)
-	}
-
-	if h.buckets[bucketIndex].add(node) {
+	if bucket.add(node) {
 		if float64(atomic.AddUint32(&h.Len, 1))/float64(atomic.LoadUint32(&h.Cap)) > THRESHOLD {
 			atomic.StoreUint32(&h.Cap, h.Cap<<1)
 		}
@@ -68,13 +64,9 @@ func (h *hashMap) Set(strKey, val string) {
 func (h *hashMap) Get(strKey string) (string, error) {
 	key := GetHash(strKey)
 
-	bucketIndex := key & (atomic.LoadUint32(&h.Cap) - 1)
+	bucket := h.getBucket(key)
 
-	if h.buckets[bucketIndex] == nil {
-		h.initializeBucket(bucketIndex)
-	}
-
-	item := h.buckets[bucketIndex].get(Regularkey(key))
+	item := bucket.get(Regularkey(key))
 
 	if item == nil {
 		return "", errors.New("ghost: no such key")
@@ -86,30 +78,26 @@ func (h *hashMap) Get(strKey string) (string, error) {
 // Delete element from the hashmap.
 func (h *hashMap) Del(strKey string) {
 	key := GetHash(strKey)
-
-	bucketIndex := key & (atomic.LoadUint32(&h.Cap) - 1)
-
-	if h.buckets[bucketIndex] == nil {
-		h.initializeBucket(bucketIndex)
-	}
-
-	h.buckets[bucketIndex].remove(Regularkey(key))
+	bucket := h.getBucket(key)
+	bucket.remove(Regularkey(key))
 }
 
 // The role of initializeBucket is to direct the pointer
 // in the array cell of the index bucket.
-func (h *hashMap) initializeBucket(index uint32) {
+func (h *hashMap) initializeBucket(index uint32) *bucket {
 	parentIndex := h.getParentIndex(index)
 
-	if h.buckets[parentIndex] == nil {
+	if h.bucketSegments.getBucket(parentIndex) == nil {
 		h.initializeBucket(parentIndex)
 	}
 
-	dummy := h.buckets[parentIndex].getDummy(index)
+	dummy := h.bucketSegments.getBucket(parentIndex).getDummy(index)
 
 	if dummy != nil {
-		h.buckets[index] = dummy
+		h.bucketSegments.setBucket(index, dummy)
 	}
+
+	return dummy
 }
 
 func (h *hashMap) getParentIndex(bucketIndex uint32) uint32 {
@@ -120,4 +108,15 @@ func (h *hashMap) getParentIndex(bucketIndex uint32) uint32 {
 	}
 
 	return bucketIndex - parentIndex
+}
+
+func (h *hashMap) getBucket(key uint32) *bucket {
+	bucketIndex := key & (atomic.LoadUint32(&h.Cap) - 1)
+	bucket := h.bucketSegments.getBucket(bucketIndex)
+
+	if bucket == nil {
+		bucket = h.initializeBucket(bucketIndex)
+	}
+
+	return bucket
 }

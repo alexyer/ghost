@@ -6,7 +6,7 @@ import (
 )
 
 func TestBucketSegments(t *testing.T) {
-	bs := NewBucketSegments()
+	bs := newBucketSegments()
 
 	if bs == nil {
 		t.Fatal("wrong constructor")
@@ -20,11 +20,16 @@ func TestBucketSegments(t *testing.T) {
 		Val:  "test",
 		next: ptr,
 	}
-	bs.setBucket(SEGMENT_SIZE+1, n)
+
+	b := &bucket{
+		head: unsafe.Pointer(n),
+	}
+
+	bs.setBucket(SEGMENT_SIZE+1, b)
 
 	bucket := bs.getBucket(SEGMENT_SIZE + 1)
 
-	if bucket.head != unsafe.Pointer(n) {
-		t.Fatalf("wrong bucket. got: %p, expected %p", bucket.head, unsafe.Pointer(n))
+	if bucket != b {
+		t.Fatalf("wrong bucket. got: %p, expected %p", bucket, b)
 	}
 }

@@ -4,7 +4,7 @@ import "testing"
 
 func BenchmarkSet(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -14,7 +14,7 @@ func BenchmarkSet(b *testing.B) {
 
 func BenchmarkGet(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	j := 0
 
 	for i := 0; i < 100000; i++ {
@@ -32,7 +32,7 @@ func BenchmarkGet(b *testing.B) {
 
 func BenchmarkDel(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	j := 0
 
 	for i := 0; i < 100000; i++ {
@@ -108,7 +108,7 @@ func ParallelSet(b *testing.B, i int, h *hashMap) {
 
 func BenchmarkParallelSet(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	i := 0
 	b.StartTimer()
 
@@ -117,7 +117,7 @@ func BenchmarkParallelSet(b *testing.B) {
 
 func BenchmarkParallelSet8(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	i := 0
 
 	b.SetParallelism(8)
@@ -129,7 +129,7 @@ func BenchmarkParallelSet8(b *testing.B) {
 
 func BenchmarkParallelSet64(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	i := 0
 
 	b.SetParallelism(64)
@@ -141,7 +141,7 @@ func BenchmarkParallelSet64(b *testing.B) {
 
 func BenchmarkParallelSet128(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	i := 0
 
 	b.SetParallelism(128)
@@ -153,7 +153,7 @@ func BenchmarkParallelSet128(b *testing.B) {
 
 func BenchmarkParallelSet1024(b *testing.B) {
 	b.StopTimer()
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 	i := 0
 
 	b.SetParallelism(1024)
@@ -175,7 +175,7 @@ func ParallelGet(b *testing.B, i int, h *hashMap) {
 func BenchmarkParallelGet(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -188,7 +188,7 @@ func BenchmarkParallelGet(b *testing.B) {
 func BenchmarkParallelGet8(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -203,7 +203,7 @@ func BenchmarkParallelGet8(b *testing.B) {
 func BenchmarkParallelGet64(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -218,7 +218,7 @@ func BenchmarkParallelGet64(b *testing.B) {
 func BenchmarkParallelGet128(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -233,7 +233,7 @@ func BenchmarkParallelGet128(b *testing.B) {
 func BenchmarkParallelGet1024(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -257,7 +257,7 @@ func ParallelDel(b *testing.B, i int, h *hashMap) {
 func BenchmarkParallelDel(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -270,7 +270,7 @@ func BenchmarkParallelDel(b *testing.B) {
 func BenchmarkParallelDel8(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -285,7 +285,7 @@ func BenchmarkParallelDel8(b *testing.B) {
 func BenchmarkParallelDel64(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -300,7 +300,7 @@ func BenchmarkParallelDel64(b *testing.B) {
 func BenchmarkParallelDel128(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")
@@ -315,7 +315,7 @@ func BenchmarkParallelDel128(b *testing.B) {
 func BenchmarkParallelDel1024(b *testing.B) {
 	b.StopTimer()
 	i := 0
-	h := NewHashMap(1024 * 1024 * 10)
+	h := NewHashMap()
 
 	for i := 0; i < 5000; i++ {
 		h.Set(string(i), "Yarrr")

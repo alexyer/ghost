@@ -16,10 +16,10 @@ var (
 )
 
 func init() {
-	empty = NewHashMap(MAXSIZE * 2)
-	one = NewHashMap(MAXSIZE * 2)
-	several = NewHashMap(MAXSIZE * 2)
-	many = NewHashMap(MAXSIZE * 2)
+	empty = NewHashMap()
+	one = NewHashMap()
+	several = NewHashMap()
+	many = NewHashMap()
 
 	one.Set("One", "one")
 

@@ -8,8 +8,7 @@ type Collection struct {
 }
 
 func newCollection(name string) *Collection {
-	// FIXME
-	return &Collection{name, NewHashMap(42)}
+	return &Collection{name, NewHashMap()}
 }
 
 func (c *Collection) Set(key, val string) {
