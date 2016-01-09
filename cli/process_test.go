@@ -4,14 +4,7 @@ import (
 	"testing"
 )
 
-var c *client.GhostClient
-
-func init() {
-	go server.GhostRun(&server.Options{Addr: "localhost:6868"})
-
-	time.Sleep(1 * time.Second)
-	c, _ = obtainClient("localhost", 6868)
-}
+// this test sequence shows part with connection to server
 
 func TestPing(t *testing.T) {
 	result, err := makeRequest(c, "PING", []string{})

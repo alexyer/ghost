@@ -4,6 +4,8 @@ import (
 	"testing"
 )
 
+// this test sequense shows how command parsing works
+
 func TestParsePing(t *testing.T) {
 	commString := "ping"
 

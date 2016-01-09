@@ -2,7 +2,23 @@ package main
 
 import (
 	"testing"
+	"time"
+
+	"github.com/alexyer/ghost/client"
+	"github.com/alexyer/ghost/server"
 )
+
+var c *client.GhostClient
+
+func init() {
+	go server.GhostRun(&server.Options{Addr: "localhost:6868"})
+
+	time.Sleep(1 * time.Second)
+	c, _ = obtainClient("localhost", 6868)
+}
+
+// this test sequense shows steps of cli-package works
+// here every part of package is used.
 
 func TestPingParsingAndProcessing(t *testing.T) {
 	commString := "ping"
