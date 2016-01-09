@@ -16,3 +16,7 @@ install:
 .PHONY: clean
 clean:
 	if [ -f ${SERVER_BINARY_OUTPUT} ] ; then rm ${SERVER_BINARY_OUTPUT} ; fi
+
+.PHONY: benchghost
+benchghost:
+	go test ./ghost -bench=. -benchmem
