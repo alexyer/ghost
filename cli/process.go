@@ -40,8 +40,17 @@ func makeRequest(c *client.GhostClient, comm string, args []string) (string, err
 	case "GET":
 		return getValue(c, args)
 	case "DEL":
+		if err := delValue(c, args); err != nil {
+			return "", err
+		}
 	case "CGET":
+		if err := getColl(c, args); err != nil {
+			return "", err
+		}
 	case "CADD":
+		if err := addColl(c, args); err != nil {
+			return "", err
+		}
 	default:
 		return "", errors.New("unknown command: " + comm)
 	}
@@ -64,4 +73,35 @@ func getValue(c *client.GhostClient, args []string) (string, error) {
 	}
 
 	return c.Get(args[0])
+}
+
+func delValue(c *client.GhostClient, args []string) error {
+	if len(args) != 1 {
+		return errors.New(fmt.Sprintf("wrong number of arguments to DEL: need 1, get %d", len(args)))
+	}
+
+	c.Del(args[0])
+	return nil
+}
+
+func addColl(c *client.GhostClient, args []string) error {
+	if len(args) != 1 {
+		return errors.New(fmt.Sprintf("wrong number of arguments to CADD: need 1, get %d", len(args)))
+	}
+
+	if _, err := c.CAdd(args[0]); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getColl(c *client.GhostClient, args []string) error {
+	if len(args) != 1 {
+		return errors.New(fmt.Sprintf("wrong number of arguments to CGET: need 1, get %d", len(args)))
+	}
+
+	if _, err := c.CGet(args[0]); err != nil {
+		return err
+	}
+	return nil
 }

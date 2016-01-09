@@ -57,14 +57,26 @@ func parseCommandString(commStr string) (string, []string, error) {
 	return args[0], args[1:], nil
 }
 
+// TODO(nikitasmall): refactor (smells like a black magic but it's only strings with quotes)
 func splitQuotedCommand(commStr string) ([]string, error) {
 	startQuoteInd, endQuoteInd := strings.Index(commStr, " \""), strings.Index(commStr, "\" ")
 
+	// closing quote at the end of command
 	if endQuoteInd == -1 {
-		partTwo := commStr[startQuoteInd+2 : len(commStr)-1]
+		partTwo := commStr[startQuoteInd+2 : len(commStr)-2]
 
-		return []string{commStr[:strings.Index(commStr, " ")], partTwo}, nil
+		// only second argument is in quotes
+		if strings.Count(commStr[:startQuoteInd+2], " ") > 1 {
+			return append(strings.Split(commStr[:startQuoteInd], " "), partTwo), nil
+		} else { // there only one argument (and it is in quotes)
+			if len(partTwo) == 0 {
+				return nil, errors.New("empty second argument")
+			}
+
+			return []string{commStr[:strings.Index(commStr, " ")], partTwo}, nil
+		}
 	} else {
+		// two aguments, both or first are in the quotes
 		partTwo := commStr[startQuoteInd+2 : endQuoteInd]
 		if len(partTwo) == 0 {
 			return nil, errors.New("empty second argument")
