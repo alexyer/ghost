@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -42,6 +43,7 @@ func parseCommandString(commStr string) (string, []string, error) {
 	var args []string
 	var err error
 
+	warnQuoteEscaping(commStr)
 	if strings.Contains(commStr, " \"") && !strings.Contains(commStr, "\\\"") {
 		args, err = splitQuotedCommand(commStr)
 		if err != nil {
@@ -63,14 +65,14 @@ func splitQuotedCommand(commStr string) ([]string, error) {
 
 	// closing quote at the end of command
 	if endQuoteInd == -1 {
-		partTwo := commStr[startQuoteInd+2 : len(commStr)-2]
+		partTwo := strings.Replace(commStr[startQuoteInd+2:len(commStr)-1], "\"", "", -1)
 
 		// only second argument is in quotes
 		if strings.Count(commStr[:startQuoteInd+2], " ") > 1 {
 			return append(strings.Split(commStr[:startQuoteInd], " "), partTwo), nil
 		} else { // there only one argument (and it is in quotes)
 			if len(partTwo) == 0 {
-				return nil, errors.New("empty second argument")
+				return nil, errors.New("empty first argument")
 			}
 
 			return []string{commStr[:strings.Index(commStr, " ")], partTwo}, nil
@@ -79,11 +81,18 @@ func splitQuotedCommand(commStr string) ([]string, error) {
 		// two aguments, both or first are in the quotes
 		partTwo := commStr[startQuoteInd+2 : endQuoteInd]
 		if len(partTwo) == 0 {
-			return nil, errors.New("empty second argument")
+			return nil, errors.New("empty first argument")
 		}
 
 		commStr = strings.Replace(commStr, partTwo, "", 1)
 		args := strings.Split(commStr, "\"\"")
 		return []string{args[0], partTwo, strings.Replace(args[1], "\"", "", 2)}, nil
+	}
+}
+
+// TODO (nikitasmall): make hard analysis to aloid this
+func warnQuoteEscaping(commStr string) {
+	if strings.Contains(commStr, "\\\"") {
+		log.Println("Escaped quotes is not supported for now.")
 	}
 }

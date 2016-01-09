@@ -31,8 +31,7 @@ func startCliSession(c *client.GhostClient) {
 func makeRequest(c *client.GhostClient, comm string, args []string) (string, error) {
 	switch comm {
 	case "PING":
-		reply, err := c.Ping()
-		return reply.Values[0], err
+		return pingServer(c, args)
 	case "SET":
 		if err := setValue(c, args); err != nil {
 			return "", err
@@ -56,6 +55,15 @@ func makeRequest(c *client.GhostClient, comm string, args []string) (string, err
 	}
 
 	return "OK", nil
+}
+
+func pingServer(c *client.GhostClient, args []string) (string, error) {
+	if len(args) != 0 {
+		return "", errors.New(fmt.Sprintf("wrong number of arguments to PING: need 0, get %d", len(args)))
+	}
+
+	reply, err := c.Ping()
+	return reply.Values[0], err
 }
 
 func setValue(c *client.GhostClient, args []string) error {
