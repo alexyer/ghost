@@ -13,7 +13,7 @@ BENCH_BINARY_OUTPUT=${BIN_DIR}/ghost-benchmark
 ghost: $(SOURCES)
 	go build -o ${SERVER_BINARY_OUTPUT} ghost_server.go
 
-ghostbench: $(SOURCES)
+ghost-benchmark: $(SOURCES)
 	go build -o ${BENCH_BINARY_OUTPUT} ${BENCH_SOURCES}
 
 .PHONY: install

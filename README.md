@@ -93,9 +93,36 @@ func main() {
 Server is under development. The main limitation - server does not accept messages more that 4KB.
 Will be fixed in future versions.
 
+Build server:
+```sh
+make ghost
+```
+
 Run server:
 ```sh
 ghost -host localhost -port 6869
+```
+
+### Benchmark
+Build:
+```sh
+make ghost-benchmark
+```
+
+```sh
+Usage of ./ghost-benchmark:
+  -clients int
+        Number of paralel connections (default 50)
+  -host string
+        Server hostname (default "localhost")
+  -keyrange int
+        Use random keys for SET/GET (default 100)
+  -port int
+        Server port (default 6869)
+  -requests int
+        Total number of requests (default 10000)
+  -size int
+        Data size of SET/GET value in bytes (default 2)
 ```
 
 ### Commands
