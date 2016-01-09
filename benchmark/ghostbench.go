@@ -52,12 +52,12 @@ func obtainClient() *client.GhostClient {
 	})
 }
 
-func initTestData(n, size, keyrange int) ([]string, []string) {
+func initTestData(prefix string, n, size, keyrange int) ([]string, []string) {
 	keys := make([]string, n)
 	vals := make([]string, n)
 
 	for i := 0; i < n; i++ {
-		keys[i] = fmt.Sprintf("set_key:%d", rand.Intn(keyrange))
+		keys[i] = fmt.Sprintf("%s_key:%d", prefix, rand.Intn(keyrange))
 		vals[i] = randString(size)
 	}
 	return keys, vals
@@ -65,8 +65,7 @@ func initTestData(n, size, keyrange int) ([]string, []string) {
 
 func benckmarkSet(c *client.GhostClient) result {
 	var wg sync.WaitGroup
-	c.Set("key", "val")
-	keys, vals := initTestData(requests, size, keyrange)
+	keys, vals := initTestData("set", requests, size, keyrange)
 
 	start := time.Now()
 
@@ -89,25 +88,16 @@ func benckmarkSet(c *client.GhostClient) result {
 
 func benckmarkGet(c *client.GhostClient) result {
 	var wg sync.WaitGroup
-	c.Set("key", "val")
-	keys, vals := initTestData(requests, size, keyrange)
-
-	for i := 0; i < requests; i++ {
-		wg.Add(1)
-		go func(keys, vals []string, i int) {
-			c.Set(keys[i], vals[i])
-			wg.Done()
-		}(keys, vals, i)
-	}
-	wg.Wait()
+	keys, vals := initTestData("get", requests, size, keyrange)
+	populateTestData(c, keys, vals)
 
 	start := time.Now()
 	for i := 0; i < requests; i++ {
 		wg.Add(1)
-		go func(keys, vals []string, i int) {
+		go func(i int) {
 			c.Get(keys[i])
 			wg.Done()
-		}(keys, vals, i)
+		}(i)
 	}
 	wg.Wait()
 
@@ -117,6 +107,42 @@ func benckmarkGet(c *client.GhostClient) result {
 		totTime: latency,
 		reqSec:  float64(requests) / latency.Seconds(),
 	}
+}
+
+func benckmarkDel(c *client.GhostClient) result {
+	var wg sync.WaitGroup
+	keys, vals := initTestData("get", requests, size, keyrange)
+	populateTestData(c, keys, vals)
+
+	start := time.Now()
+	for i := 0; i < requests; i++ {
+		wg.Add(1)
+		go func(i int) {
+			c.Del(keys[i])
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+
+	latency := time.Since(start)
+
+	return result{
+		totTime: latency,
+		reqSec:  float64(requests) / latency.Seconds(),
+	}
+}
+
+func populateTestData(c *client.GhostClient, keys, vals []string) {
+	var wg sync.WaitGroup
+	for i := 0; i < requests; i++ {
+		wg.Add(1)
+		go func(i int) {
+			c.Set(keys[i], vals[i])
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	return
 }
 
 func printResults(name string, res result) {
@@ -133,4 +159,5 @@ func main() {
 
 	printResults("SET", benckmarkSet(c))
 	printResults("GET", benckmarkGet(c))
+	printResults("DEL", benckmarkDel(c))
 }
