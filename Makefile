@@ -6,7 +6,7 @@ SERVER_BINARY_OUTPUT=${BIN_DIR}/${SERVER_BINARY}
 SOURCEDIR=.
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 
-BENCH_SOURCES=./benchmark/ghostbench.go
+BENCH_SOURCES=./ghost-benchmark/ghostbench.go
 BENCH_BINARY_OUTPUT=${BIN_DIR}/ghost-benchmark
 
 
@@ -15,6 +15,8 @@ ghost: $(SOURCES)
 
 ghost-benchmark: $(SOURCES)
 	go build -o ${BENCH_BINARY_OUTPUT} ${BENCH_SOURCES}
+
+all: ghost ghost-benchmark
 
 .PHONY: install
 install:
