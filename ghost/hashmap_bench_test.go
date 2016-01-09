@@ -248,8 +248,10 @@ func BenchmarkParallelGet1024(b *testing.B) {
 func ParallelDel(b *testing.B, i int, h *hashMap) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			h.Del(string(i))
-			i++
+			if i < 5000 {
+				h.Del(string(i))
+			}
+			i--
 		}
 	})
 }
