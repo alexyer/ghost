@@ -6,15 +6,16 @@
 Yet another in-memory key/value storage written in Go.
 
 ### Description
-Simple key/value storage based on implementation of striped hashmap data structure.
-Yes, it has terrible performance, the point was to make something simple to get more comfortabe with Go language.
-I hope to improve it one day...or not.
+Simple key/value storage.
+Uses implementation of lock-free hashmap based on
+"Split-Ordered Lists - Lock-free Resizable Hash Tables" by Shalev & Shavit and
+"Lock-free Dynamically Resizable Arrays" by Dechev, Pirkelbauer, Stroustrup works
+to provide good performance and concurrency-safe access.
 
 ### Features
   * Concurrency safe
-  * Slow
-  * ACID - seriously, how do you think? ;)
-  * Written in pure Go
+  * Fast
+  * Written in pure Go, means could be used in any place where Go could be run
   * Could be used as embedded storage
   * Could be run as standalone server
 
@@ -24,39 +25,39 @@ I hope to improve it one day...or not.
 Ghost hashmap
 
 ```
-BenchmarkSet-2                    100000             12063 ns/op
-BenchmarkGet-2                   5000000               257 ns/op
-BenchmarkDel-2                   5000000               222 ns/op
+BenchmarkSet-4                 3000000       383 ns/op
+BenchmarkGet-4                10000000       114 ns/op
+BenchmarkDel-4                10000000       106 ns/op
 ```
 
 Ghost concurrent hashmap
 
 ```
-BenchmarkParallelSet-2            100000             10337 ns/op
-BenchmarkParallelSet8-2           100000             10560 ns/op
-BenchmarkParallelSet64-2          100000             10930 ns/op
-BenchmarkParallelSet128-2         100000             10308 ns/op
-BenchmarkParallelSet1024-2        100000             12179 ns/op
+BenchmarkParallelSet-4       5000000           382 ns/op
+BenchmarkParallelSet8-4      2000000           530 ns/op
+BenchmarkParallelSet64-4     3000000           392 ns/op
+BenchmarkParallelSet128-4    5000000           312 ns/op
+BenchmarkParallelSet1024-4   1000000         33503 ns/op
 
-BenchmarkParallelGet-2           5000000               281 ns/op
-BenchmarkParallelGet8-2          5000000               290 ns/op
-BenchmarkParallelGet64-2         5000000               293 ns/op
-BenchmarkParallelGet128-2        5000000               291 ns/op
-BenchmarkParallelGet1024-2       5000000               304 ns/op
+BenchmarkParallelGet-4      20000000            75.7 ns/op
+BenchmarkParallelGet8-4     20000000            58.9 ns/op
+BenchmarkParallelGet64-4    20000000            62.8 ns/op
+BenchmarkParallelGet128-4   20000000            61.1 ns/op
+BenchmarkParallelGet1024-4  20000000            63.1 ns/op
 
-BenchmarkParallelDel-2          10000000               207 ns/op
-BenchmarkParallelDel8-2         10000000               198 ns/op
-BenchmarkParallelDel64-2        10000000               200 ns/op
-BenchmarkParallelDel128-2       10000000               201 ns/op
-BenchmarkParallelDel1024-2      10000000               201 ns/op
+BenchmarkParallelDel-4      30000000            46.2 ns/op
+BenchmarkParallelDel8-4     30000000            46.1 ns/op
+BenchmarkParallelDel64-4    30000000            45.7 ns/op
+BenchmarkParallelDel128-4   30000000            45.5 ns/op
+BenchmarkParallelDel1024-4  30000000            45.6 ns/op
 ```
 
 Native hashmap
 
 ```
-BenchmarkNativeSet-2             1000000              1910 ns/op
-BenchmarkNativeGet-2            10000000               117 ns/op
-BenchmarkNativeDel-2            20000000                50.2 ns/op
+BenchmarkNativeSet-4           5000000       220 ns/op
+BenchmarkNativeGet-4          30000000       41.7 ns/op
+BenchmarkNativeDel-4          100000000      15.7 ns/op
 ```
 
 ### Example
@@ -138,8 +139,9 @@ func main() {
 
 ## TODO
   * Implement CLI
-  * Improve storage performance
   * Improve server and get rid of limitations
+  * Improve documentation
+  * Properly comment sources
 
 ## Contributing
 It's learing project, so there are possible a lot of issues, espesially in concurrent code,

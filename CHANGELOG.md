@@ -1,3 +1,6 @@
+## 0.4.0
+  * Implemented lock-free hashmap. Huge performances improvements.
+
 ## 0.3.1
   * Small optimization of hasmap.getIndex method.
 
