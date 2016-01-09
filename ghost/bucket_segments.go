@@ -5,19 +5,21 @@ import (
 	"unsafe"
 )
 
-const SEGMENT_SIZE = 32
+const (
+	INITIAL_SEGMENT_SIZE uint32 = 8  // Size of the first segment
+	SEGMENTS_NUM         uint32 = 30 // Maximum number of the segments
+)
 
 type bucketSegments struct {
 	segments unsafe.Pointer // Pointer to array of segments
-	length   uint32
 }
 
 type segment struct {
 	buckets unsafe.Pointer // Pointer to array of buckets
 }
 
-func newSegment() unsafe.Pointer {
-	buckets := make([]*bucket, SEGMENT_SIZE)
+func newSegment(segmentSize uint32) unsafe.Pointer {
+	buckets := make([]*bucket, segmentSize)
 
 	return unsafe.Pointer(&segment{
 		buckets: unsafe.Pointer(&buckets),
@@ -25,24 +27,18 @@ func newSegment() unsafe.Pointer {
 }
 
 func newBucketSegments() *bucketSegments {
-	segments := make([]unsafe.Pointer, 1)
-	segments[0] = newSegment()
+	segments := make([]unsafe.Pointer, SEGMENTS_NUM)
+	segments[0] = newSegment(INITIAL_SEGMENT_SIZE)
 
 	return &bucketSegments{
 		segments: unsafe.Pointer(&segments),
-		length:   1,
 	}
 }
 
-func (bs *bucketSegments) getBucket(bucketIndex uint32) *bucket {
-	segmentIndex := bucketIndex / SEGMENT_SIZE
-
-	if segmentIndex >= bs.length {
-		return nil
-	}
+func (bs *bucketSegments) getBucket(i uint32) *bucket {
+	segmentIndex, bucketIndex := bs.at(i)
 
 	segments := *(*[]unsafe.Pointer)(bs.segments)
-
 	if segments[segmentIndex] == nil {
 		return nil
 	}
@@ -50,35 +46,28 @@ func (bs *bucketSegments) getBucket(bucketIndex uint32) *bucket {
 	seg := (*segment)(segments[segmentIndex])
 	buckets := *(*[]*bucket)(seg.buckets)
 
-	return buckets[bucketIndex&(SEGMENT_SIZE-1)]
+	return buckets[bucketIndex]
 }
 
-func (bs *bucketSegments) setBucket(bucketIndex uint32, newBucket *bucket) {
-	segmentIndex := bucketIndex / SEGMENT_SIZE
-
-	for {
-		if segmentIndex >= atomic.LoadUint32(&bs.length) {
-			oldSegments := *(*[]*segment)(bs.segments)
-			newLen := atomic.LoadUint32(&bs.length) << 1
-			newSegments := make([]*segment, newLen)
-
-			copy(newSegments, oldSegments)
-
-			if atomic.CompareAndSwapPointer(&bs.segments, unsafe.Pointer(bs.segments), unsafe.Pointer(&newSegments)) {
-				atomic.StoreUint32(&bs.length, newLen)
-				break
-			}
-		}
-		break
-	}
+func (bs *bucketSegments) setBucket(i uint32, newBucket *bucket) {
+	segmentIndex, bucketIndex := bs.at(i)
 
 	segments := *(*[]unsafe.Pointer)(bs.segments)
 
-	if (segments[segmentIndex]) == nil {
-		atomic.CompareAndSwapPointer(&segments[segmentIndex], nil, unsafe.Pointer(newSegment()))
+	if segments[segmentIndex] == nil {
+		atomic.CompareAndSwapPointer(&segments[segmentIndex], nil, unsafe.Pointer(newSegment(INITIAL_SEGMENT_SIZE*(2<<segmentIndex-1))))
 	}
 
 	seg := (*segment)(segments[segmentIndex])
 	buckets := *(*[]*bucket)(seg.buckets)
-	buckets[bucketIndex&(SEGMENT_SIZE-1)] = newBucket
+	buckets[bucketIndex] = newBucket
+}
+
+func (bs *bucketSegments) at(i uint32) (segmentIndex uint32, bucketIndex uint32) {
+	pos := i + INITIAL_SEGMENT_SIZE
+	hibit := bsr(pos)
+
+	segmentIndex = hibit - bsr(INITIAL_SEGMENT_SIZE)
+	bucketIndex = pos ^ (2<<hibit - 1)
+	return
 }

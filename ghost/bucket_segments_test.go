@@ -25,9 +25,8 @@ func TestBucketSegments(t *testing.T) {
 		head: unsafe.Pointer(n),
 	}
 
-	bs.setBucket(SEGMENT_SIZE+1, b)
-
-	bucket := bs.getBucket(SEGMENT_SIZE + 1)
+	bs.setBucket(INITIAL_SEGMENT_SIZE+1, b)
+	bucket := bs.getBucket(INITIAL_SEGMENT_SIZE + 1)
 
 	if bucket != b {
 		t.Fatalf("wrong bucket. got: %p, expected %p", bucket, b)

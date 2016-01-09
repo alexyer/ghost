@@ -50,3 +50,18 @@ func msb2lsb(i uint32) uint32 {
 		(bitReverseTable256[(i>>16)&0xff] << 8) |
 		(bitReverseTable256[(i>>24)&0xff])
 }
+
+func bsr(i uint32) uint32 {
+	var r uint32 = 0
+
+	for {
+		if i <= 1 {
+			break
+		}
+
+		i >>= 1
+		r++
+	}
+
+	return r
+}
