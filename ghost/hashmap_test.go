@@ -3,6 +3,7 @@ package ghost
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 const MAXSIZE = 82
@@ -102,5 +103,25 @@ func TestHashDelete(t *testing.T) {
 
 	if _, err := several.Get("Two"); err == nil {
 		t.Errorf("Wrong delete behavior")
+	}
+}
+
+func TestHashDeleteParallel(t *testing.T) {
+	h := NewHashMap()
+
+	for i := 0; i < 1000; i++ {
+		h.Set(string(i), "val")
+	}
+
+	for i := 0; i < 1000; i++ {
+		go h.Del(string(i))
+	}
+
+	time.Sleep(1 * time.Millisecond)
+
+	for i := 0; i < 1000; i++ {
+		if _, err := h.Get(string(i)); err == nil {
+			t.Fatal("Wrong delete behavior")
+		}
 	}
 }
