@@ -93,18 +93,18 @@ func main() {
 Server is under development. The main limitation - server does not accept messages more that 4KB.
 Will be fixed in future versions.
 
-Build server:
+####Build server:
 ```sh
 make ghost
 ```
 
-Run server:
+####Run server:
 ```sh
 ghost -host localhost -port 6869
 ```
 
 ### Benchmark
-Build:
+####Build:
 ```sh
 make ghost-benchmark
 ```
@@ -125,11 +125,16 @@ Usage of ./ghost-benchmark:
         Data size of SET/GET value in bytes (default 2)
 ```
 
-### CLI
+## CLI
 Now you can use a simple cli to test or play with data. All the current commands
 are supported. Cli works only if ghost-server exists on provided address.
 
-Run cli:
+####Build:
+```sh
+make ghost-cli
+```
+
+####Run cli:
 ```sh
 ghost-cli -host localhost -port 6869
 ```
@@ -162,7 +167,7 @@ OK
 stairway
 ```
 
-### Commands
+## Commands
 
 Server commands:
   * PING -- Test command. Returns "Pong!".
@@ -176,7 +181,7 @@ Collection commands:
   * CGET &lt;collection name&gt; -- Change user's collection.
   * CADD &lt;collection name&gt; -- Create new collection.
 
-### Client
+## Client
 ```go
 package main
 
@@ -200,45 +205,6 @@ func main() {
 	ghost.CGet("new-collection")  // Change client collection
 }
 ```
-
-### CLI
-Now you can use a simple cli to test or play with data. All the current commands
-are supported. Cli works only if ghost-server exists and run on provided address.
-
-Run cli:
-```sh
-ghost-cli -host localhost -port 6869
-```
-
-#### Example session:
-
-```
-> ping # will test the connection
-Pong!
-> set hello world # will set value "world" to key "hello"
-OK
-> get hello # will get the value stored with key "hello"
-world
-> del hello # will delete the value stored with key "hello"
-OK
-> cadd mars # will add new "mars" collection
-OK
-> cget mars # will select "mars" collection
-OK
-> set "few words key" "few words value" # if few words in value or keys is needed surround it with quotes
-OK
-> get "few words key"
-few words value
-> set song "riders on the storm" # only one argument could be in quotes if needed
-OK
-> get song
-riders on the storm
-> set "another song" stairway # other order is possible
-OK
-> get "another song"
-stairway
-```
-
 ## TODO
   * Improve CLI
   * Improve server and get rid of limitations
