@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func init() {
 	go server.GhostRun(&server.Options{Addr: "localhost:6868"})
 
 	time.Sleep(1 * time.Second)
-	c, _ = obtainClient("localhost", 6868)
+	c, _ = ObtainClient("localhost", 6868)
 }
 
 // this test sequense shows steps of cli-package works

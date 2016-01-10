@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+
+	"github.com/alexyer/ghost/cli"
 )
 
 var (
@@ -18,11 +20,11 @@ func init() {
 func main() {
 	flag.Parse()
 
-	c, err := obtainClient(host, port)
+	c, err := cli.ObtainClient(host, port)
 	if err != nil {
 		log.Printf("Error: %s. Exiting.", err.Error())
 		return
 	}
 
-	startCliSession(c)
+	cli.StartCliSession(c)
 }

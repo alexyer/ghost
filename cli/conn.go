@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"errors"
@@ -8,7 +8,9 @@ import (
 	"github.com/alexyer/ghost/client"
 )
 
-func obtainClient(host string, port int) (*client.GhostClient, error) {
+// function returns ghost-client on successfull connection to server
+// and error with description otherwise.
+func ObtainClient(host string, port int) (*client.GhostClient, error) {
 	addr := fmt.Sprintf("%s:%d", host, port)
 	return connect(addr)
 }

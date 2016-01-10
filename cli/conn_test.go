@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestFailedConnect(t *testing.T) {
-	_, err := obtainClient("somehost", 3000)
+	_, err := ObtainClient("somehost", 3000)
 
 	if err == nil {
 		t.Error("connection doesn't tell about failure.")
@@ -19,7 +19,7 @@ func TestSuccessfullConnect(t *testing.T) {
 	go server.GhostRun(&server.Options{Addr: "localhost:6870"})
 	time.Sleep(1 * time.Second)
 
-	c, err := obtainClient("localhost", 6870)
+	c, err := ObtainClient("localhost", 6870)
 	if err != nil {
 		t.Error("Can't connect to test localhost ", err.Error())
 	}

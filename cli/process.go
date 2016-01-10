@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"errors"
@@ -8,7 +8,9 @@ import (
 	"github.com/alexyer/ghost/client"
 )
 
-func startCliSession(c *client.GhostClient) {
+// initialize endless cli-session with provided client
+// as a connection to ghost-server
+func StartCliSession(c *client.GhostClient) {
 	log.Println("Cli-ghost session started")
 
 	for {
