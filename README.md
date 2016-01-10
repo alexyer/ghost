@@ -19,8 +19,123 @@ to provide good performance and concurrency-safe access.
   * Could be used as embedded storage
   * Could be run as standalone server
 
-## Embedded
+## Commands
 
+Server commands:
+  * PING -- Test command. Returns "Pong!".
+
+Hash commands:
+  * SET &lt;key&gt; &lt;value&gt; -- Set create or update &lt;key&gt; with &lt;value&gt;.
+  * GET &lt;key&gt; -- Get value of the &lt;key&gt;.
+  * DEL &lt;key&gt; -- Delete key &lt;key&gt;.
+
+Collection commands:
+  * CGET &lt;collection name&gt; -- Change user's collection.
+  * CADD &lt;collection name&gt; -- Create new collection.
+
+## Server
+Server is under development. The main limitation - server does not accept messages more that 4KB.
+Will be fixed in future versions.
+
+####Build server:
+```sh
+make ghost
+```
+
+####Run server:
+```sh
+ghost -host localhost -port 6869
+```
+### Benchmark
+####Build:
+```sh
+make ghost-benchmark
+```
+
+```sh
+Usage of ./ghost-benchmark:
+  -clients int
+        Number of paralel connections (default 50)
+  -host string
+        Server hostname (default "localhost")
+  -keyrange int
+        Use random keys for SET/GET (default 100)
+  -port int
+        Server port (default 6869)
+  -requests int
+        Total number of requests (default 10000)
+  -size int
+        Data size of SET/GET value in bytes (default 2)
+```
+
+## Client
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/alexyer/ghost/client"
+)
+
+func main() {
+    // Create new client and connect to the Ghost server.
+	ghost := client.New(&client.Options{
+		Addr: "localhost:6869",
+	})
+
+	ghost.Set("key1", "val2")      // Set key
+	res, err := ghost.Get("key1")  // Get key
+	ghost.Del("key1")              // Del key
+
+	ghost.CAdd("new-collection")  // Create new collection
+	ghost.CGet("new-collection")  // Change client collection
+}
+```
+
+## CLI
+Now you can use a simple cli to test or play with data. All the current commands
+are supported. Cli works only if ghost-server exists on provided address.
+
+####Build:
+```sh
+make ghost-cli
+```
+
+####Run cli:
+```sh
+ghost-cli -host localhost -port 6869
+```
+
+#### Example session:
+```sh
+> ping # will test the connection
+Pong!
+> set hello world # will set value "world" to key "hello"
+OK
+> get hello # will get the value stored with key "hello"
+world
+> del hello # will delete the value stored with key "hello"
+OK
+> cadd mars # will add new "mars" collection
+OK
+> cget mars # will select "mars" collection
+OK
+> set "few words key" "few words value" # if few words in value or keys is needed surround it with quotes
+OK
+> get "few words key"
+few words value
+> set song "riders on the storm" # only one argument could be in quotes if needed
+OK
+> get song
+riders on the storm
+> set "another song" stairway # other order is possible
+OK
+> get "another song"
+stairway
+```
+
+## Embedded
 ### Benchmark
 Ghost hashmap
 
@@ -61,7 +176,6 @@ BenchmarkNativeDel-4          100000000      15.7 ns/op
 ```
 
 ### Example
-
 ```go
 package main
 
@@ -89,83 +203,8 @@ func main() {
 }
 ```
 
-## Server
-Server is under development. The main limitation - server does not accept messages more that 4KB.
-Will be fixed in future versions.
-
-Build server:
-```sh
-make ghost
-```
-
-Run server:
-```sh
-ghost -host localhost -port 6869
-```
-
-### Benchmark
-Build:
-```sh
-make ghost-benchmark
-```
-
-```sh
-Usage of ./ghost-benchmark:
-  -clients int
-        Number of paralel connections (default 50)
-  -host string
-        Server hostname (default "localhost")
-  -keyrange int
-        Use random keys for SET/GET (default 100)
-  -port int
-        Server port (default 6869)
-  -requests int
-        Total number of requests (default 10000)
-  -size int
-        Data size of SET/GET value in bytes (default 2)
-```
-
-### Commands
-
-Server commands:
-  * PING -- Test command. Returns "Pong!".
-
-Hash commands:
-  * SET &lt;key&gt; &lt;value&gt; -- Set create or update &lt;key&gt; with &lt;value&gt;.
-  * GET &lt;key&gt; -- Get value of the &lt;key&gt;.
-  * DEL &lt;key&gt; -- Delete key &lt;key&gt;.
-
-Collection commands:
-  * CGET &lt;collection name&gt; -- Change user's collection.
-  * CADD &lt;collection name&gt; -- Create new collection.
-
-### Client
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/alexyer/ghost/client"
-)
-
-func main() {
-    // Create new client and connect to the Ghost server.
-	ghost := client.New(&client.Options{
-		Addr: "localhost:6869",
-	})
-
-	ghost.Set("key1", "val2")      // Set key
-	res, err := ghost.Get("key1")  // Get key
-	ghost.Del("key1")              // Del key
-
-	ghost.CAdd("new-collection")  // Create new collection
-	ghost.CGet("new-collection")  // Change client collection
-}
-```
-
 ## TODO
-  * Implement CLI
+  * Improve CLI
   * Improve server and get rid of limitations
   * Improve documentation
   * Properly comment sources
