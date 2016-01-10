@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -45,49 +46,35 @@ func parseCommandString(commStr string) (string, []string, error) {
 
 	warnQuoteEscaping(commStr)
 	if strings.Contains(commStr, " \"") && !strings.Contains(commStr, "\\\"") {
-		args, err = splitQuotedCommand(commStr)
-		if err != nil {
+		if args, err = splitQuotedCommand(commStr); err != nil {
 			return "", nil, err
 		}
 	} else {
 		args = strings.Split(commStr, " ")
-		if len(args) > 3 {
-			return "", nil, errors.New("too many arguments")
-		}
 	}
 
 	return args[0], args[1:], nil
 }
 
-// TODO(nikitasmall): refactor (smells like a black magic but it's only strings with quotes)
 func splitQuotedCommand(commStr string) ([]string, error) {
-	startQuoteInd, endQuoteInd := strings.Index(commStr, " \""), strings.Index(commStr, "\" ")
-
-	// closing quote at the end of command
-	if endQuoteInd == -1 {
-		partTwo := strings.Replace(commStr[startQuoteInd+2:len(commStr)-1], "\"", "", -1)
-
-		// only second argument is in quotes
-		if strings.Count(commStr[:startQuoteInd+2], " ") > 1 {
-			return append(strings.Split(commStr[:startQuoteInd], " "), partTwo), nil
-		} else { // there only one argument (and it is in quotes)
-			if len(partTwo) == 0 {
-				return nil, errors.New("empty first argument")
-			}
-
-			return []string{commStr[:strings.Index(commStr, " ")], partTwo}, nil
-		}
-	} else {
-		// two aguments, both or first are in the quotes
-		partTwo := commStr[startQuoteInd+2 : endQuoteInd]
-		if len(partTwo) == 0 {
-			return nil, errors.New("empty first argument")
-		}
-
-		commStr = strings.Replace(commStr, partTwo, "", 1)
-		args := strings.Split(commStr, "\"\"")
-		return []string{args[0], partTwo, strings.Replace(args[1], "\"", "", 2)}, nil
+	// Check if all quotes in the command string matches.
+	// If the number of quote characters is odd - there are unmatched quotes.
+	if (strings.Count(commStr, "\"") & 1) != 0 {
+		return nil, errors.New("wrong syntax: unmatched quotes")
 	}
+
+	re := regexp.MustCompile(`\w+|"[\w ]*"`)
+
+	args := re.FindAllString(commStr, -1)
+
+	for i := range args {
+		if args[i] == `""` {
+			return nil, errors.New("empty argument")
+		}
+		args[i] = strings.Replace(args[i], "\"", "", -1)
+	}
+
+	return args, nil
 }
 
 // TODO (nikitasmall): make hard analysis to aloid this

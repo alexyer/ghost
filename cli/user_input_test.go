@@ -1,8 +1,6 @@
 package cli
 
-import (
-	"testing"
-)
+import "testing"
 
 // this test sequense shows how command parsing works
 
@@ -59,17 +57,8 @@ func TestBaseParseGet(t *testing.T) {
 	}
 }
 
-func TestBaseParseTooManyArgs(t *testing.T) {
-	commString := "get hello brave new world!"
-
-	_, _, err := parseCommand(commString)
-	if err == nil {
-		t.Error("Parsing of many numbers of args doesn't raise an error.")
-	}
-}
-
 func TestQuotedParseSet(t *testing.T) {
-	commString := "set \"hello\" \"bye\""
+	commString := `set "hello" "bye"`
 
 	comm, args, err := parseCommand(commString)
 	if err != nil {
@@ -86,7 +75,7 @@ func TestQuotedParseSet(t *testing.T) {
 }
 
 func TestBigQuotedParseSet(t *testing.T) {
-	commString := "set \"hello i love you\" \"can you tell me your name\""
+	commString := `set "hello i love you" "can you tell me your name"`
 
 	comm, args, err := parseCommand(commString)
 	if err != nil {
@@ -98,7 +87,7 @@ func TestBigQuotedParseSet(t *testing.T) {
 	}
 
 	if len(args) != 2 {
-		t.Error("Error on args parsing: args: ", args)
+		t.Errorf("Error on args parsing: args: %v, len: %d", args, len(args))
 	}
 
 	if args[0] != "hello i love you" || args[1] != "can you tell me your name" {
@@ -199,15 +188,6 @@ func TestFirstArgumentEmptyParseSetGet(t *testing.T) {
 	_, _, err = parseCommand(commString)
 	if err == nil {
 		t.Error("Parsing of command with empty first argument doesn't raise an error (for get).")
-	}
-}
-
-func TestFirstArgumentEmptyParseSet(t *testing.T) {
-	commString := "set song \"\""
-
-	_, _, err := parseCommand(commString)
-	if err != nil {
-		t.Error("Error on correct input: ", err.Error())
 	}
 }
 
