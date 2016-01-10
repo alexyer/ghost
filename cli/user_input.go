@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const CLI_GREETING = "> "
+
 func processUserInput() (string, []string, error) {
 	commStr, err := readUserInput()
 	if err != nil {
@@ -21,8 +23,7 @@ func processUserInput() (string, []string, error) {
 
 func readUserInput() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("> ")
+	fmt.Print(CLI_GREETING)
 	return reader.ReadString('\n')
 }
 
