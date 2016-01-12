@@ -51,7 +51,7 @@ func msb2lsb(i uint32) uint32 {
 		(bitReverseTable256[(i>>24)&0xff])
 }
 
-func bsr(i uint32) uint32 {
+func Bsr(i uint32) uint32 {
 	var r uint32 = 0
 
 	for {

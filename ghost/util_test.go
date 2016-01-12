@@ -10,11 +10,11 @@ func TestMsb2lsb(t *testing.T) {
 
 func TestBsr(t *testing.T) {
 	switch {
-	case bsr(4) != 2:
+	case Bsr(4) != 2:
 		t.Fatal("error")
-	case bsr(2) != 1:
+	case Bsr(2) != 1:
 		t.Fatal("error")
-	case bsr(5) != 2:
+	case Bsr(5) != 2:
 		t.Fatal("error")
 	}
 }
