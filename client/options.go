@@ -41,12 +41,6 @@ type Options struct {
 	// The maximum number of retries before giving up.
 	// Default is to not retry failed commands.
 	MaxRetries int
-
-	// Size of the message header
-	MsgHeaderSize int
-
-	// Size of the message buffer
-	MsgBufferSize int
 }
 
 func (opt *Options) GetDialer() func() (net.Conn, error) {
@@ -108,20 +102,4 @@ func (opt *Options) GetIdleTimeout() time.Duration {
 
 func (opt *Options) GetMaxRetries() int {
 	return opt.MaxRetries
-}
-
-func (opt *Options) GetMsgHeaderSize() int {
-	if opt.MsgHeaderSize == 0 {
-		opt.MsgHeaderSize = 8
-	}
-
-	return opt.MsgHeaderSize
-}
-
-func (opt *Options) GetMsgBufferSize() int {
-	if opt.MsgBufferSize == 0 {
-		opt.MsgBufferSize = 1024 * 1024
-	}
-
-	return opt.MsgBufferSize
 }

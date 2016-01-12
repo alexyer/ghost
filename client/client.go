@@ -7,23 +7,24 @@ import (
 
 	"github.com/alexyer/ghost/ghost"
 	"github.com/alexyer/ghost/protocol"
+	"github.com/alexyer/ghost/util"
 	"github.com/golang/protobuf/proto"
 )
 
 type GhostClient struct {
+	bufpool  *util.Bufpool
 	connPool pool
 	opt      *Options
 	processor
 	msgHeader []byte
-	msgBuffer []byte
 }
 
 func New(opt *Options) *GhostClient {
 	newClient := &GhostClient{
+		bufpool:   util.NewBufpool(),
 		connPool:  newConnPool(opt),
 		opt:       opt,
-		msgHeader: make([]byte, opt.GetMsgHeaderSize()),
-		msgBuffer: make([]byte, opt.GetMsgBufferSize()),
+		msgHeader: make([]byte, MSG_HEADER_SIZE),
 	}
 
 	newClient.processor.process = newClient.process
@@ -93,15 +94,17 @@ func (c *GhostClient) getReply(cn *conn) (*protocol.Reply, error) {
 		return nil, err
 	}
 
-	if _, err := cn.Read(c.msgBuffer); err != nil {
+	cmdLen, _ := ghost.ByteArrayToUint64(c.msgHeader)
+	buf := c.bufpool.Get(int(cmdLen))
+
+	if _, err := cn.Read(buf); err != nil {
 		c.putConn(cn, err)
 		return nil, err
 	}
 
-	cmdLen, _ := ghost.ByteArrayToUint64(c.msgHeader)
-	reply := new(protocol.Reply)
+	reply := &protocol.Reply{}
 
-	if err := proto.Unmarshal(c.msgBuffer[:cmdLen], reply); err != nil {
+	if err := proto.Unmarshal(buf[:cmdLen], reply); err != nil {
 		return nil, err
 	}
 
