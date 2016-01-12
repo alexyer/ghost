@@ -1,8 +1,8 @@
-// Implementation of FNV-1a hash alghorithm
 package ghost
 
 import "encoding/binary"
 
+// Implementation of FNV-1a hash alghorithm.
 func FNV1a_32(data []byte) uint32 {
 	var (
 		val uint32 = 2166136261 // Offset basis

@@ -5,17 +5,18 @@ import (
 	"net"
 
 	"github.com/alexyer/ghost/ghost"
+	"github.com/alexyer/ghost/util"
 )
 
 type Server struct {
-	bufpool *bufpool
+	bufpool *util.Bufpool
 	opt     *Options
 	storage *ghost.Storage
 }
 
 func GhostRun(opt *Options) Server {
 	s := Server{
-		bufpool: newBufpool(),
+		bufpool: util.NewBufpool(),
 		opt:     opt,
 		storage: ghost.GetStorage(),
 	}

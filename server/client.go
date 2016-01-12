@@ -43,7 +43,7 @@ func (c *client) Exec() (reply []byte, err error) {
 	}
 
 	cmdLen, _ := ghost.ByteArrayToUint64(c.MsgHeader)
-	msgBuf := c.Server.bufpool.get(int(cmdLen))
+	msgBuf := c.Server.bufpool.Get(int(cmdLen))
 
 	// Read command to client buffer
 	if err := c.read(msgBuf); err != nil {
@@ -51,11 +51,11 @@ func (c *client) Exec() (reply []byte, err error) {
 	}
 
 	if err := proto.Unmarshal(msgBuf[:cmdLen], cmd); err != nil {
-		c.Server.bufpool.put(msgBuf)
+		c.Server.bufpool.Put(msgBuf)
 		return nil, err
 	}
 
-	c.Server.bufpool.put(msgBuf)
+	c.Server.bufpool.Put(msgBuf)
 
 	result, err := c.execCmd(cmd)
 	return c.encodeReply(result, err)
@@ -118,9 +118,13 @@ func (c *client) encodeReply(values []string, err error) ([]byte, error) {
 
 func (c *client) read(buf []byte) error {
 	// TODO(alexyer): Implement proper error handling
-	if _, err := c.Conn.Read(buf); err != nil {
+	if read, err := c.Conn.Read(buf); err != nil {
 		if err != io.EOF {
 			return err
+		}
+
+		if read == 0 {
+			return nil
 		}
 	}
 

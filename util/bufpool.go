@@ -1,4 +1,4 @@
-package server
+package util
 
 import (
 	"sync"
@@ -13,22 +13,22 @@ const (
 
 // Buffers pool is an array of pools.
 // Each pool contains buffers of specified size.
-type bufpool struct {
+type Bufpool struct {
 	poolsMu sync.RWMutex
 	pools   []sync.Pool
 	maxSize int
 }
 
 // Create new pools pool.
-func newBufpool() *bufpool {
-	return &bufpool{
+func NewBufpool() *Bufpool {
+	return &Bufpool{
 		pools:   make([]sync.Pool, BUFPOOL_INIT_NUM),
 		maxSize: BUFPOOL_INIT_SIZE * (2<<uint(BUFPOOL_INIT_NUM) - 1),
 	}
 }
 
 // Get a buffer capable to contain the given size from the pool.
-func (bp *bufpool) get(size int) []byte {
+func (bp *Bufpool) Get(size int) []byte {
 	bp.poolsMu.RLock()
 
 	if size > bp.maxSize {
@@ -50,7 +50,7 @@ func (bp *bufpool) get(size int) []byte {
 }
 
 // Put buffer back into the pool.
-func (bp *bufpool) put(buf []byte) {
+func (bp *Bufpool) Put(buf []byte) {
 	bp.poolsMu.RLock()
 
 	size := len(buf)
@@ -65,7 +65,7 @@ func (bp *bufpool) put(buf []byte) {
 	bp.pools[bp.getPoolIndex(size)].Put(buf)
 }
 
-func (bp *bufpool) grow(size int) {
+func (bp *Bufpool) grow(size int) {
 	bp.poolsMu.Lock()
 
 	// Somebody has been faster
@@ -85,6 +85,6 @@ func (bp *bufpool) grow(size int) {
 	bp.poolsMu.Unlock()
 }
 
-func (bp *bufpool) getPoolIndex(size int) uint32 {
+func (bp *Bufpool) getPoolIndex(size int) uint32 {
 	return ghost.Bsr(uint32(size)+uint32(BUFPOOL_INIT_SIZE)) - ghost.Bsr(uint32(BUFPOOL_INIT_SIZE))
 }

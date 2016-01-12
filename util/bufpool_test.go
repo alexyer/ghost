@@ -1,9 +1,9 @@
-package server
+package util
 
 import "testing"
 
 func TestNewBufpool(t *testing.T) {
-	bp := newBufpool()
+	bp := NewBufpool()
 
 	if bp == nil {
 		t.Fatal("Expected bufpool. Got <nil>")
@@ -15,9 +15,9 @@ func TestNewBufpool(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	bp := newBufpool()
+	bp := NewBufpool()
 
-	buf := bp.get(42)
+	buf := bp.Get(42)
 
 	if buf == nil {
 		t.Fatal("Expected buffer. Got <nil>")
@@ -29,10 +29,10 @@ func TestGet(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	bp := newBufpool()
+	bp := NewBufpool()
 	oldSize := bp.maxSize
 
-	bp.put(make([]byte, oldSize+1))
+	bp.Put(make([]byte, oldSize+1))
 
 	if bp.maxSize <= oldSize {
 		t.Errorf("Should grow")
@@ -40,10 +40,10 @@ func TestPut(t *testing.T) {
 }
 
 func TestGrow(t *testing.T) {
-	bp := newBufpool()
+	bp := NewBufpool()
 	oldSize := bp.maxSize
 
-	buf := bp.get(oldSize + 1)
+	buf := bp.Get(oldSize + 1)
 
 	if buf == nil {
 		t.Fatal("Expected buffer. Got <nil>")
@@ -59,17 +59,17 @@ func TestGrow(t *testing.T) {
 }
 
 func TestGetRaces(t *testing.T) {
-	bp := newBufpool()
+	bp := NewBufpool()
 	size := bp.maxSize
 
-	go bp.get(size + 1)
-	go bp.get(2 * size)
+	go bp.Get(size + 1)
+	go bp.Get(2 * size)
 }
 
 func TestPutRaces(t *testing.T) {
-	bp := newBufpool()
+	bp := NewBufpool()
 	size := bp.maxSize
 
-	go bp.put(make([]byte, size+1))
-	go bp.put(make([]byte, 2*size))
+	go bp.Put(make([]byte, size+1))
+	go bp.Put(make([]byte, 2*size))
 }
