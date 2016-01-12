@@ -4,11 +4,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 )
 
 var (
+	embedded bool
 	host     string
 	port     int
 	clients  int
@@ -23,6 +25,7 @@ type result struct {
 }
 
 func init() {
+	flag.BoolVar(&embedded, "embedded", false, "Test embedded storage")
 	flag.StringVar(&host, "host", "localhost", "Server hostname")
 	flag.IntVar(&port, "port", 6869, "Server port")
 	flag.IntVar(&clients, "clients", 50, "Number of paralel connections")
@@ -62,9 +65,19 @@ func printResults(name string, res result) {
 }
 
 func main() {
-	c := obtainClient()
+	if clients >= requests {
+		log.Fatal("Clients should be < requests")
+	}
 
-	printResults("SET", benchmarkServerSet(c))
-	printResults("GET", benchmarkServerGet(c))
-	printResults("DEL", benchmarkServerDel(c))
+	if embedded {
+		c := obtainCollection()
+		printResults("SET", benchmarkEmbeddedSet(c))
+		printResults("GET", benchmarkEmbeddedGet(c))
+		printResults("DEL", benchmarkEmbeddedDel(c))
+	} else {
+		c := obtainClient()
+		printResults("SET", benchmarkServerSet(c))
+		printResults("GET", benchmarkServerGet(c))
+		printResults("DEL", benchmarkServerDel(c))
+	}
 }
