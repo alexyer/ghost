@@ -14,6 +14,7 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 
 BENCH_BINARY=ghost-benchmark
 BENCH_DIR=$(CMD_DIR)/${BENCH_BINARY}
+BENCH_SOURCES=$(shell find $(BENCH_DIR) -name '*.go')
 BENCH_BINARY_OUTPUT=${BIN_DIR}/${BENCH_BINARY}
 
 
@@ -24,7 +25,7 @@ ghost-cli: $(SOURCES)
 	go build -o ${CLI_BINARY_OUTPUT} ${CLI_DIR}/cli.go
 
 ghost-benchmark: $(SOURCES)
-	go build -o ${BENCH_BINARY_OUTPUT} ${BENCH_DIR}/ghostbench.go
+	go build -o ${BENCH_BINARY_OUTPUT} ${BENCH_SOURCES}
 
 all: ghost ghost-benchmark ghost-cli
 
