@@ -3,6 +3,8 @@ package server
 import (
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net"
 
 	"github.com/alexyer/ghost/ghost"
@@ -14,7 +16,6 @@ type client struct {
 	Conn       net.Conn
 	Server     *Server
 	MsgHeader  []byte
-	MsgBuffer  []byte
 	collection *ghost.Collection
 }
 
@@ -22,8 +23,7 @@ func newClient(conn net.Conn, s *Server) *client {
 	return &client{
 		Conn:       conn,
 		Server:     s,
-		MsgHeader:  make([]byte, s.opt.GetMsgHeaderSize()),
-		MsgBuffer:  make([]byte, s.opt.GetMsgBufferSize()),
+		MsgHeader:  make([]byte, MSG_HEADER_SIZE),
 		collection: s.storage.GetCollection("main"),
 	}
 }
@@ -37,15 +37,47 @@ func (c *client) Exec() (reply []byte, err error) {
 		cmd = new(protocol.Command)
 	)
 
-	cmdLen, _ := ghost.ByteArrayToUint64(c.MsgHeader)
-
-	if err := proto.Unmarshal(c.MsgBuffer[:cmdLen], cmd); err != nil {
+	// Read message header
+	if err := c.read(c.MsgHeader); err != nil {
 		return nil, err
 	}
 
-	result, err := c.execCmd(cmd)
+	cmdLen, _ := ghost.ByteArrayToUint64(c.MsgHeader)
+	msgBuf := c.Server.bufpool.get(int(cmdLen))
 
+	// Read command to client buffer
+	if err := c.read(msgBuf); err != nil {
+		return nil, err
+	}
+
+	if err := proto.Unmarshal(msgBuf[:cmdLen], cmd); err != nil {
+		c.Server.bufpool.put(msgBuf)
+		return nil, err
+	}
+
+	c.Server.bufpool.put(msgBuf)
+
+	result, err := c.execCmd(cmd)
 	return c.encodeReply(result, err)
+}
+
+func (c *client) handleCommand() {
+	for {
+		res, err := c.Exec()
+
+		if err != nil {
+			log.Print(err)
+			c.Conn.Close()
+			return
+		}
+
+		replySize := ghost.IntToByteArray(int64(len(res)))
+
+		if _, err := c.Conn.Write(append(replySize, res...)); err != nil {
+			c.Conn.Close()
+			return
+		}
+	}
 }
 
 func (c *client) execCmd(cmd *protocol.Command) (result []string, err error) {
@@ -82,4 +114,15 @@ func (c *client) encodeReply(values []string, err error) ([]byte, error) {
 		Values: values,
 		Error:  &errMsg,
 	})
+}
+
+func (c *client) read(buf []byte) error {
+	// TODO(alexyer): Implement proper error handling
+	if _, err := c.Conn.Read(buf); err != nil {
+		if err != io.EOF {
+			return err
+		}
+	}
+
+	return nil
 }

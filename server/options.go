@@ -1,9 +1,7 @@
 package server
 
 type Options struct {
-	Addr          string
-	MsgHeaderSize int
-	MsgBufferSize int
+	Addr string
 }
 
 func (opt *Options) GetAddr() string {
@@ -12,20 +10,4 @@ func (opt *Options) GetAddr() string {
 	}
 
 	return opt.Addr
-}
-
-func (opt *Options) GetMsgHeaderSize() int {
-	if opt.MsgHeaderSize == 0 {
-		opt.MsgHeaderSize = 8
-	}
-
-	return opt.MsgHeaderSize
-}
-
-func (opt *Options) GetMsgBufferSize() int {
-	if opt.MsgBufferSize == 0 {
-		opt.MsgBufferSize = 4096
-	}
-
-	return opt.MsgBufferSize
 }
