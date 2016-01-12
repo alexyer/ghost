@@ -39,7 +39,7 @@ Will be fixed in future versions.
 
 ####Build server:
 ```sh
-make ghost
+make ghost-server
 ```
 
 ####Run server:
