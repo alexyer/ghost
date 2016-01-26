@@ -38,7 +38,7 @@ func (c *client) Exec() (reply []byte, err error) {
 	)
 
 	// Read message header
-	if err := c.read(c.MsgHeader); err != nil {
+	if _, err := c.read(c.MsgHeader); err != nil {
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func (c *client) Exec() (reply []byte, err error) {
 	msgBuf := c.Server.bufpool.Get(int(cmdLen))
 
 	// Read command to client buffer
-	if err := c.read(msgBuf); err != nil {
+	if _, err := c.read(msgBuf); err != nil {
 		return nil, err
 	}
 
@@ -66,6 +66,11 @@ func (c *client) handleCommand() {
 		res, err := c.Exec()
 
 		if err != nil {
+			if err == GhostEmptyMsg {
+				c.Conn.Close()
+				return
+			}
+
 			log.Print(err)
 			ghostLogger.Print(err)
 			c.Conn.Close()
@@ -119,17 +124,19 @@ func (c *client) encodeReply(values []string, err error) ([]byte, error) {
 	})
 }
 
-func (c *client) read(buf []byte) error {
+func (c *client) read(buf []byte) (int, error) {
 	// TODO(alexyer): Implement proper error handling
-	if read, err := c.Conn.Read(buf); err != nil {
-		if err != io.EOF {
-			return err
-		}
+	read, err := c.Conn.Read(buf)
 
-		if read == 0 {
-			return nil
+	if read == 0 {
+		if err != nil && err == io.EOF {
+			return read, GhostEmptyMsg
 		}
 	}
 
-	return nil
+	if err != nil {
+		return read, err
+	}
+
+	return read, nil
 }

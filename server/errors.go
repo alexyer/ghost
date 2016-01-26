@@ -12,3 +12,5 @@ func GhostBaseError(msg string) error {
 func GhostCmdError(cmdName, msg string) error {
 	return GhostBaseError(fmt.Sprintf("%s: %s", cmdName, msg))
 }
+
+var GhostEmptyMsg = GhostBaseError("got empty message")
