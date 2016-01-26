@@ -43,12 +43,6 @@ func (s *Server) handle() {
 			continue
 		}
 
-		go s.handleConnection(conn)
-	}
-}
-
-func (s *Server) handleConnection(conn net.Conn) {
-	go func() {
 		go newClient(conn, s).handleCommand()
-	}()
+	}
 }

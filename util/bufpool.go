@@ -23,7 +23,7 @@ type Bufpool struct {
 func NewBufpool() *Bufpool {
 	return &Bufpool{
 		pools:   make([]sync.Pool, BUFPOOL_INIT_NUM),
-		maxSize: BUFPOOL_INIT_SIZE * (2<<uint(BUFPOOL_INIT_NUM) - 1),
+		maxSize: BUFPOOL_INIT_SIZE * (2<<uint(BUFPOOL_INIT_NUM-1) - 1),
 	}
 }
 
@@ -31,13 +31,14 @@ func NewBufpool() *Bufpool {
 func (bp *Bufpool) Get(size int) []byte {
 	bp.poolsMu.RLock()
 
-	if size > bp.maxSize {
+	if size >= bp.maxSize {
 		bp.poolsMu.RUnlock()
 		bp.grow(size)
 		bp.poolsMu.RLock()
 	}
 
 	poolIndex := bp.getPoolIndex(size)
+
 	buffer := bp.pools[poolIndex].Get()
 
 	bp.poolsMu.RUnlock()
@@ -54,14 +55,13 @@ func (bp *Bufpool) Put(buf []byte) {
 	bp.poolsMu.RLock()
 
 	size := len(buf)
-	if size > bp.maxSize {
+	if size >= bp.maxSize {
 		bp.poolsMu.RUnlock()
 		bp.grow(size)
 		bp.poolsMu.RLock()
 	}
 
 	bp.poolsMu.RUnlock()
-
 	bp.pools[bp.getPoolIndex(size)].Put(buf)
 }
 
@@ -69,18 +69,18 @@ func (bp *Bufpool) grow(size int) {
 	bp.poolsMu.Lock()
 
 	// Somebody has been faster
-	if size <= bp.maxSize {
+	if size < bp.maxSize {
 		bp.poolsMu.Unlock()
 		return
 	}
 
-	newLen := bp.getPoolIndex(size)
-	newPools := make([]sync.Pool, newLen+1)
+	newLen := bp.getPoolIndex(size) + 1
+	newPools := make([]sync.Pool, newLen)
 
 	copy(newPools, bp.pools)
 
 	bp.pools = newPools
-	bp.maxSize = BUFPOOL_INIT_SIZE * (2<<uint(newLen) - 1)
+	bp.maxSize = BUFPOOL_INIT_SIZE * (2<<uint(newLen-1) - 1)
 
 	bp.poolsMu.Unlock()
 }

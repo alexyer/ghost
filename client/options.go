@@ -25,7 +25,7 @@ type Options struct {
 	// Default: 10 connections.
 	PoolSize int
 
-	// Specifies amount of time client watis for connection if all
+	// Specifies amount of time client waits for connection if all
 	// connections are busy before returning an error.
 	// Default: 5 seconds.
 	PoolTimeout time.Duration

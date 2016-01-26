@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/alexyer/ghost/ghost"
@@ -70,7 +71,7 @@ func (c *GhostClient) process(cmd *protocol.Command) (*protocol.Reply, error) {
 			return nil, err
 		}
 
-		msgSize := ghost.IntToByteArray(int64(len(marshaledCmd)))
+		msgSize := ghost.UintToByteArray(uint64(len(marshaledCmd)))
 
 		if _, err := cn.Write(append(msgSize, marshaledCmd...)); err != nil {
 			fmt.Println(err)
@@ -90,7 +91,7 @@ func (c *GhostClient) process(cmd *protocol.Command) (*protocol.Reply, error) {
 // Get reply from the Ghost server and unmarshal.
 func (c *GhostClient) getReply(cn *conn) (*protocol.Reply, error) {
 	if _, err := cn.Read(c.msgHeader); err != nil {
-		c.putConn(cn, err)
+		log.Print(err)
 		return nil, err
 	}
 
@@ -98,8 +99,9 @@ func (c *GhostClient) getReply(cn *conn) (*protocol.Reply, error) {
 	buf := c.bufpool.Get(int(cmdLen))
 
 	if _, err := cn.Read(buf); err != nil {
-		c.putConn(cn, err)
-		return nil, err
+		if err != io.EOF {
+			return nil, err
+		}
 	}
 
 	reply := &protocol.Reply{}

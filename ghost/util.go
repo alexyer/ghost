@@ -21,14 +21,14 @@ var bitReverseTable256 = [256]uint32{
 	0x0F, 0x8F, 0x4F, 0xCF, 0x2F, 0xAF, 0x6F, 0xEF, 0x1F, 0x9F, 0x5F, 0xDF, 0x3F, 0xBF, 0x7F, 0xFF,
 }
 
-func IntToByteArray(val int64) []byte {
+func UintToByteArray(val uint64) []byte {
 	buf := make([]byte, 8)
-	binary.PutVarint(buf, val)
+	binary.PutUvarint(buf, val)
 	return buf
 }
 
-func ByteArrayToUint64(bytes []byte) (int64, int) {
-	return binary.Varint(bytes)
+func ByteArrayToUint64(bytes []byte) (uint64, int) {
+	return binary.Uvarint(bytes)
 }
 
 func GetHash(key string) uint32 {

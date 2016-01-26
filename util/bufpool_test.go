@@ -9,7 +9,7 @@ func TestNewBufpool(t *testing.T) {
 		t.Fatal("Expected bufpool. Got <nil>")
 	}
 
-	if bp.maxSize != BUFPOOL_INIT_SIZE*(2<<uint(BUFPOOL_INIT_NUM)-1) {
+	if bp.maxSize != BUFPOOL_INIT_SIZE*(2<<uint(BUFPOOL_INIT_NUM-1)-1) {
 		t.Error("Wrong maxSize")
 	}
 }
@@ -72,4 +72,15 @@ func TestPutRaces(t *testing.T) {
 
 	go bp.Put(make([]byte, size+1))
 	go bp.Put(make([]byte, 2*size))
+}
+
+func TestPutBigBuf(t *testing.T) {
+	bp := NewBufpool()
+	bp.Put(make([]byte, 1024*1024))
+
+	buf := bp.Get(1024 * 1024)
+
+	if len(buf) < 1024*1024 {
+		t.Errorf("Wrong buffer length. Expected: %d, got: %d", 1024*1024, len(buf))
+	}
 }

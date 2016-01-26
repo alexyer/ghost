@@ -67,13 +67,16 @@ func (c *client) handleCommand() {
 
 		if err != nil {
 			log.Print(err)
+			ghostLogger.Print(err)
 			c.Conn.Close()
 			return
 		}
 
-		replySize := ghost.IntToByteArray(int64(len(res)))
+		replySize := ghost.UintToByteArray(uint64(len(res)))
 
 		if _, err := c.Conn.Write(append(replySize, res...)); err != nil {
+			log.Print(err)
+			ghostLogger.Print(err)
 			c.Conn.Close()
 			return
 		}

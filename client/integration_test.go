@@ -77,3 +77,17 @@ func TestBasicOperations(t *testing.T) {
 		t.Errorf("wrong del")
 	}
 }
+
+func TestBigValues(t *testing.T) {
+	val := make([]byte, 1024*1024)
+
+	for i := range val {
+		val[i] = 'a'
+	}
+
+	c.Set("big_key", string(val))
+
+	if res, _ := c.Get("big_key"); res != string(val) {
+		t.Fatalf("Got wrong big key: %s", res)
+	}
+}
