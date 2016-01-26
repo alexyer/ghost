@@ -72,7 +72,7 @@ func (c *client) handleCommand() {
 			}
 
 			log.Print(err)
-			ghostLogger.Print(err)
+			c.Server.logger.Print(err)
 			c.Conn.Close()
 			return
 		}
@@ -81,7 +81,7 @@ func (c *client) handleCommand() {
 
 		if _, err := c.Conn.Write(append(replySize, res...)); err != nil {
 			log.Print(err)
-			ghostLogger.Print(err)
+			c.Server.logger.Print(err)
 			c.Conn.Close()
 			return
 		}

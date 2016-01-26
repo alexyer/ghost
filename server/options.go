@@ -1,7 +1,11 @@
 package server
 
 type Options struct {
+	// host:port address.
 	Addr string
+
+	// Log file location.
+	LogfileName string
 }
 
 func (opt *Options) GetAddr() string {
@@ -10,4 +14,12 @@ func (opt *Options) GetAddr() string {
 	}
 
 	return opt.Addr
+}
+
+func (opt *Options) GetLogfileName() string {
+	if opt.LogfileName == "" {
+		opt.LogfileName = "/tmp/ghost.log"
+	}
+
+	return opt.LogfileName
 }

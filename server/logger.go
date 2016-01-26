@@ -5,13 +5,12 @@ import (
 	"os"
 )
 
-var ghostLogger *log.Logger
-
-func init() {
-	file, err := os.Create("/tmp/ghost.log")
+// Create file logger.
+func getLogger(filename string) *log.Logger {
+	file, err := os.Create(filename)
 	if err != nil {
-		log.Fatalf("ghost: cannot open log file: %s\n", err)
+		log.Fatal(GhostErrorf("cannot open log file: %s\n", err))
 	}
 
-	ghostLogger = log.New(file, "", log.LstdFlags|log.Lshortfile)
+	return log.New(file, "", log.LstdFlags|log.Lshortfile)
 }

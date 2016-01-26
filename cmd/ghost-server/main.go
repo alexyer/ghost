@@ -14,12 +14,14 @@ import (
 
 var (
 	cpuprofile string
+	logfile    string
 	host       string
 	port       int
 )
 
 func init() {
 	flag.StringVar(&cpuprofile, "cpuprofile", "", "enable cpu profiling and write profile to file")
+	flag.StringVar(&logfile, "logfile", "/tmp/ghost.log", "log file path")
 	flag.StringVar(&host, "host", "localhost", "host")
 	flag.IntVar(&port, "port", 6869, "port")
 	flag.Parse()
@@ -60,7 +62,10 @@ func initCPUProfile() {
 }
 
 func initServer() {
-	server.GhostRun(&server.Options{Addr: fmt.Sprintf("%s:%d", host, port)})
+	server.GhostRun(&server.Options{
+		Addr:        fmt.Sprintf("%s:%d", host, port),
+		LogfileName: logfile,
+	})
 }
 
 func main() {
