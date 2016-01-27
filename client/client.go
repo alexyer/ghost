@@ -72,8 +72,9 @@ func (c *GhostClient) process(cmd *protocol.Command) (*protocol.Reply, error) {
 		}
 
 		msgSize := ghost.UintToByteArray(uint64(len(marshaledCmd)))
+		msg := append(msgSize, marshaledCmd...)
 
-		if _, err := cn.Write(append(msgSize, marshaledCmd...)); err != nil {
+		if _, err := cn.Write(msg); err != nil {
 			fmt.Println(err)
 			c.putConn(cn, err)
 			return nil, err

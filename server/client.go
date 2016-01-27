@@ -61,11 +61,13 @@ func (c *client) Exec() (reply []byte, err error) {
 		}
 	}
 
-	if cmdRead > 0 && (cmdReadErr == nil || (cmdReadErr != nil && err == io.EOF)) {
-		if err := proto.Unmarshal(msgBuf[:cmdLen], cmd); err != nil {
+	if cmdRead > 0 && cmdReadErr == nil {
+		if err := proto.Unmarshal(msgBuf[:iCmdLen], cmd); err != nil {
 			c.Server.bufpool.Put(msgBuf)
 			return nil, err
 		}
+	} else {
+		return nil, cmdReadErr
 	}
 
 	c.Server.bufpool.Put(msgBuf)
@@ -134,23 +136,6 @@ func (c *client) encodeReply(values []string, err error) ([]byte, error) {
 	})
 }
 
-// Read data from a client connection to the given buffer.
-func (c *client) read(buf []byte) (int, error) {
-	read, err := c.Conn.Read(buf)
-
-	if read == 0 {
-		if err != nil && err == io.EOF {
-			return read, io.EOF
-		}
-	}
-
-	if err != nil {
-		return read, err
-	}
-
-	return read, nil
-}
-
 // Read data of the given size from connection.
 func (c *client) readData(size int, buf []byte) (int, error) {
 	var (
@@ -160,9 +145,9 @@ func (c *client) readData(size int, buf []byte) (int, error) {
 	)
 
 	for totalBytesRead < size && readErr == nil {
-		bytesRead, readErr = c.read(buf)
+		bytesRead, readErr = c.Conn.Read(buf)
 		totalBytesRead += bytesRead
 	}
 
-	return bytesRead, readErr
+	return totalBytesRead, readErr
 }
