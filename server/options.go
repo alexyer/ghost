@@ -4,6 +4,9 @@ type Options struct {
 	// host:port address.
 	Addr string
 
+	// Unix socket filename.
+	Socket string
+
 	// Log file location.
 	LogfileName string
 }
@@ -22,4 +25,8 @@ func (opt *Options) GetLogfileName() string {
 	}
 
 	return opt.LogfileName
+}
+
+func (opt *Options) GetSocket() string {
+	return opt.Socket
 }

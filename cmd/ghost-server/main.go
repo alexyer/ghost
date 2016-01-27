@@ -17,6 +17,7 @@ var (
 	logfile    string
 	host       string
 	port       int
+	socket     string
 )
 
 func init() {
@@ -24,6 +25,7 @@ func init() {
 	flag.StringVar(&logfile, "logfile", "/tmp/ghost.log", "log file path")
 	flag.StringVar(&host, "host", "localhost", "host")
 	flag.IntVar(&port, "port", 6869, "port")
+	flag.StringVar(&socket, "socket", "", "listen to unix socket")
 	flag.Parse()
 }
 
@@ -43,6 +45,10 @@ func cleanup() {
 	if cpuprofile != "" {
 		pprof.StopCPUProfile()
 		log.Print("Stopped CPU profiling")
+	}
+
+	if socket != "" {
+		os.Remove(socket)
 	}
 
 	log.Print("Bye!")
@@ -65,6 +71,7 @@ func initServer() {
 	server.GhostRun(&server.Options{
 		Addr:        fmt.Sprintf("%s:%d", host, port),
 		LogfileName: logfile,
+		Socket:      socket,
 	})
 }
 

@@ -37,6 +37,10 @@ func (s *Server) handle() {
 		log.Fatal(err)
 	}
 
+	if socket := s.opt.GetSocket(); socket != "" {
+		go s.handleUnixSocket(socket)
+	}
+
 	for {
 		conn, err := ln.Accept()
 
@@ -46,5 +50,24 @@ func (s *Server) handle() {
 		}
 
 		go newClient(conn, s).handleCommand()
+	}
+}
+
+func (s *Server) handleUnixSocket(socket string) {
+	ln, err := net.Listen("unix", socket)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		fd, err := ln.Accept()
+
+		if err != nil {
+			s.logger.Println(err)
+			continue
+		}
+
+		go newClient(fd, s).handleCommand()
 	}
 }

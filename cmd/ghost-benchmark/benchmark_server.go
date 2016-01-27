@@ -15,6 +15,14 @@ func obtainClient() *client.GhostClient {
 	})
 }
 
+func obtainUnixSocketClient() *client.GhostClient {
+	return client.New(&client.Options{
+		Addr:     fmt.Sprintf(socket),
+		Network:  "unix",
+		PoolSize: clients,
+	})
+}
+
 func benchmarkServerSet(c *client.GhostClient) result {
 	var wg sync.WaitGroup
 	keys, vals := initTestData("set", requests, size, keyrange)

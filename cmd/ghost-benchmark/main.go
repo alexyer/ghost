@@ -7,6 +7,8 @@ import (
 	"log"
 	"math/rand"
 	"time"
+
+	"github.com/alexyer/ghost/client"
 )
 
 var (
@@ -17,6 +19,7 @@ var (
 	requests int
 	size     int
 	keyrange int
+	socket   string
 )
 
 type result struct {
@@ -32,6 +35,7 @@ func init() {
 	flag.IntVar(&requests, "requests", 10000, "Total number of requests")
 	flag.IntVar(&size, "size", 2, "Data size of SET/GET value in bytes")
 	flag.IntVar(&keyrange, "keyrange", 100, "Use random keys for SET/GET")
+	flag.StringVar(&socket, "socket", "", "listen to unix socket")
 	flag.Parse()
 
 }
@@ -65,6 +69,7 @@ func printResults(name string, res result) {
 }
 
 func main() {
+
 	if clients >= requests {
 		log.Fatal("Clients should be < requests")
 	}
@@ -75,7 +80,14 @@ func main() {
 		printResults("GET", benchmarkEmbeddedGet(c))
 		printResults("DEL", benchmarkEmbeddedDel(c))
 	} else {
-		c := obtainClient()
+		var c *client.GhostClient
+
+		if socket == "" {
+			c = obtainClient()
+		} else {
+			c = obtainUnixSocketClient()
+		}
+
 		printResults("SET", benchmarkServerSet(c))
 		printResults("GET", benchmarkServerGet(c))
 		printResults("DEL", benchmarkServerDel(c))
