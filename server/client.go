@@ -37,22 +37,35 @@ func (c *client) Exec() (reply []byte, err error) {
 		cmd = new(protocol.Command)
 	)
 
-	// Read message header
-	if _, err := c.read(c.MsgHeader); err != nil {
-		return nil, err
+	// Read header
+	if read, err := c.readData(MSG_HEADER_SIZE, c.MsgHeader); err != nil {
+		if err != io.EOF {
+			return nil, GhostErrorf("error when trying to read header. actually read: %d. underlying error: %s", read, err)
+		} else {
+			return nil, err
+		}
 	}
 
 	cmdLen, _ := ghost.ByteArrayToUint64(c.MsgHeader)
-	msgBuf := c.Server.bufpool.Get(int(cmdLen))
+	iCmdLen := int(cmdLen)
+	msgBuf := c.Server.bufpool.Get(iCmdLen)
 
 	// Read command to client buffer
-	if _, err := c.read(msgBuf); err != nil {
-		return nil, err
+	cmdRead, cmdReadErr := c.readData(iCmdLen, msgBuf)
+	if cmdReadErr != nil {
+		if cmdReadErr != io.EOF {
+			return nil, GhostErrorf("Failure to read from connection. was told to read %d, actually read: %d. underlying error: %s",
+				int(iCmdLen), cmdRead, cmdReadErr)
+		} else {
+			return nil, err
+		}
 	}
 
-	if err := proto.Unmarshal(msgBuf[:cmdLen], cmd); err != nil {
-		c.Server.bufpool.Put(msgBuf)
-		return nil, err
+	if cmdRead > 0 && (cmdReadErr == nil || (cmdReadErr != nil && err == io.EOF)) {
+		if err := proto.Unmarshal(msgBuf[:cmdLen], cmd); err != nil {
+			c.Server.bufpool.Put(msgBuf)
+			return nil, err
+		}
 	}
 
 	c.Server.bufpool.Put(msgBuf)
@@ -66,13 +79,10 @@ func (c *client) handleCommand() {
 		res, err := c.Exec()
 
 		if err != nil {
-			if err == GhostEmptyMsg {
-				c.Conn.Close()
-				return
+			if err != io.EOF {
+				log.Print(err)
+				c.Server.logger.Print(err)
 			}
-
-			log.Print(err)
-			c.Server.logger.Print(err)
 			c.Conn.Close()
 			return
 		}
@@ -124,13 +134,13 @@ func (c *client) encodeReply(values []string, err error) ([]byte, error) {
 	})
 }
 
+// Read data from a client connection to the given buffer.
 func (c *client) read(buf []byte) (int, error) {
-	// TODO(alexyer): Implement proper error handling
 	read, err := c.Conn.Read(buf)
 
 	if read == 0 {
 		if err != nil && err == io.EOF {
-			return read, GhostEmptyMsg
+			return read, io.EOF
 		}
 	}
 
@@ -139,4 +149,20 @@ func (c *client) read(buf []byte) (int, error) {
 	}
 
 	return read, nil
+}
+
+// Read data of the given size from connection.
+func (c *client) readData(size int, buf []byte) (int, error) {
+	var (
+		totalBytesRead = 0
+		readErr        error
+		bytesRead      = 0
+	)
+
+	for totalBytesRead < size && readErr == nil {
+		bytesRead, readErr = c.read(buf)
+		totalBytesRead += bytesRead
+	}
+
+	return bytesRead, readErr
 }

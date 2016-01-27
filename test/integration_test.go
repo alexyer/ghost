@@ -1,14 +1,15 @@
-package client
+package main
 
 import (
 	"testing"
 	"time"
 
+	"github.com/alexyer/ghost/client"
 	"github.com/alexyer/ghost/server"
 )
 
 var (
-	c *GhostClient
+	c *client.GhostClient
 )
 
 func init() {
@@ -17,7 +18,7 @@ func init() {
 	// Wait until server start
 	// Yep, ugly. Tell if you know better solution
 	time.Sleep(1 * time.Second)
-	c = New(&Options{Addr: "localhost:6869"})
+	c = client.New(&client.Options{Addr: "localhost:6869"})
 }
 
 func TestPing(t *testing.T) {
