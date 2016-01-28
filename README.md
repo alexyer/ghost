@@ -7,10 +7,7 @@ Yet another in-memory key/value storage written in Go.
 
 ### Description
 Simple key/value storage.
-Uses implementation of lock-free hashmap based on
-"Split-Ordered Lists - Lock-free Resizable Hash Tables" by Shalev & Shavit and
-"Lock-free Dynamically Resizable Arrays" by Dechev, Pirkelbauer, Stroustrup works
-to provide good performance and concurrency-safe access.
+Based on Striped hashmap algorithm.
 
 ### Features
   * Concurrency safe
@@ -144,39 +141,39 @@ stairway
 Ghost hashmap
 
 ```
-BenchmarkSet-4                 3000000       383 ns/op
-BenchmarkGet-4                10000000       114 ns/op
-BenchmarkDel-4                10000000       106 ns/op
+BenchmarkSet-4            	  500000	      4625 ns/op
+BenchmarkGet-4            	10000000	       101 ns/op
+BenchmarkDel-4            	20000000	        75.1 ns/op
 ```
 
 Ghost concurrent hashmap
 
 ```
-BenchmarkParallelSet-4       5000000           382 ns/op
-BenchmarkParallelSet8-4      2000000           530 ns/op
-BenchmarkParallelSet64-4     3000000           392 ns/op
-BenchmarkParallelSet128-4    5000000           312 ns/op
-BenchmarkParallelSet1024-4   1000000         33503 ns/op
+BenchmarkParallelSet-4    	  300000	      3680 ns/op
+BenchmarkParallelSet8-4   	  500000	      4050 ns/op
+BenchmarkParallelSet64-4  	  500000	      4107 ns/op
+BenchmarkParallelSet128-4 	  500000	      4132 ns/op
+BenchmarkParallelSet1024-4	  300000	      4256 ns/op
 
-BenchmarkParallelGet-4      20000000            75.7 ns/op
-BenchmarkParallelGet8-4     20000000            58.9 ns/op
-BenchmarkParallelGet64-4    20000000            62.8 ns/op
-BenchmarkParallelGet128-4   20000000            61.1 ns/op
-BenchmarkParallelGet1024-4  20000000            63.1 ns/op
+BenchmarkParallelGet-4    	20000000	       116 ns/op
+BenchmarkParallelGet8-4   	20000000	       133 ns/op
+BenchmarkParallelGet64-4  	20000000	       136 ns/op
+BenchmarkParallelGet128-4 	20000000	       142 ns/op
+BenchmarkParallelGet1024-4	20000000	       137 ns/op
 
-BenchmarkParallelDel-4      30000000            46.2 ns/op
-BenchmarkParallelDel8-4     30000000            46.1 ns/op
-BenchmarkParallelDel64-4    30000000            45.7 ns/op
-BenchmarkParallelDel128-4   30000000            45.5 ns/op
-BenchmarkParallelDel1024-4  30000000            45.6 ns/op
+BenchmarkParallelDel-4    	10000000	       122 ns/op
+BenchmarkParallelDel8-4   	10000000	       152 ns/op
+BenchmarkParallelDel64-4  	10000000	       154 ns/op
+BenchmarkParallelDel128-4 	10000000	       154 ns/op
+BenchmarkParallelDel1024-4	10000000	       156 ns/op
 ```
 
 Native hashmap
 
 ```
-BenchmarkNativeSet-4           5000000       220 ns/op
-BenchmarkNativeGet-4          30000000       41.7 ns/op
-BenchmarkNativeDel-4          100000000      15.7 ns/op
+BenchmarkNativeSet-4      	 3000000	       338 ns/op
+BenchmarkNativeGet-4      	30000000	        41.3 ns/op
+BenchmarkNativeDel-4      	100000000	        15.5 ns/op
 ```
 
 ### Example
@@ -209,7 +206,6 @@ func main() {
 
 ## TODO
   * Improve CLI
-  * Improve server and get rid of limitations
   * Improve documentation
   * Properly comment sources
 
