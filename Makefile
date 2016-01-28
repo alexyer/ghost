@@ -3,30 +3,30 @@ CMD_DIR=cmd
 
 SERVER_BINARY=ghost-server
 SERVER_DIR=$(CMD_DIR)/${SERVER_BINARY}
+SERVER_SOURCES=$(shell find $(SERVER_DIR) -name '*.go')
 SERVER_BINARY_OUTPUT=${BIN_DIR}/${SERVER_BINARY}
 
 CLI_BINARY=ghost-cli
 CLI_DIR=$(CMD_DIR)/${CLI_BINARY}
+CLI_SOURCES=$(shell find $(CLI_DIR) -name '*.go')
 CLI_BINARY_OUTPUT=${BIN_DIR}/${CLI_BINARY}
-
-SOURCEDIR=.
-SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 
 BENCH_BINARY=ghost-benchmark
 BENCH_DIR=$(CMD_DIR)/${BENCH_BINARY}
+BENCH_SOURCES=$(shell find $(BENCH_DIR) -name '*.go')
 BENCH_BINARY_OUTPUT=${BIN_DIR}/${BENCH_BINARY}
 
 
-ghost: $(SOURCES)
-	go build -o ${SERVER_BINARY_OUTPUT} ${SERVER_DIR}/server.go
+ghost-server: $(SERVER_SOURCES)
+	go build -o ${SERVER_BINARY_OUTPUT} ${SERVER_SOURCES}
 
-ghost-cli: $(SOURCES)
-	go build -o ${CLI_BINARY_OUTPUT} ${CLI_DIR}/cli.go
+ghost-cli: $(CLI_SOURCES)
+	go build -o ${CLI_BINARY_OUTPUT} ${CLI_SOURCES}
 
-ghost-benchmark: $(SOURCES)
-	go build -o ${BENCH_BINARY_OUTPUT} ${BENCH_DIR}/ghostbench.go
+ghost-benchmark: $(BENCH_SOURCES)
+	go build -o ${BENCH_BINARY_OUTPUT} ${BENCH_SOURCES}
 
-all: ghost ghost-benchmark ghost-cli
+all: ghost-server ghost-benchmark ghost-cli
 
 .PHONY: install
 install:
@@ -39,6 +39,7 @@ clean:
 	if [ -f ${SERVER_BINARY_OUTPUT} ] ; then rm ${SERVER_BINARY_OUTPUT} ; fi
 	if [ -f ${BENCH_BINARY_OUTPUT} ] ; then rm ${BENCH_BINARY_OUTPUT} ; fi
 	if [ -f ${CLI_BINARY_OUTPUT} ] ; then rm ${CLI_BINARY_OUTPUT} ; fi
-.PHONY: runbenchmark
-runbenchmark:
+
+.PHONY: run-benchmark
+run-benchmark:
 	go test ./ghost -bench=. -benchmem

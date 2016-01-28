@@ -1,3 +1,10 @@
+## 0.4.1
+  * Implemented buffer pool. Server can accept messages of any size now.
+  * Added unix socket support.
+  * Added file logger.
+  * Made some refactoring.
+  * Improved benchmark.
+
 ## 0.4.0
   * Implemented lock-free hashmap. Huge performances improvements.
 

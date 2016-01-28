@@ -34,12 +34,10 @@ Collection commands:
   * CADD &lt;collection name&gt; -- Create new collection.
 
 ## Server
-Server is under development. The main limitation - server does not accept messages more that 4KB.
-Will be fixed in future versions.
 
 ####Build server:
 ```sh
-make ghost
+make ghost-server
 ```
 
 ####Run server:

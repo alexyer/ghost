@@ -1,22 +1,26 @@
 package server
 
 import (
-	"io"
 	"log"
 	"net"
 
 	"github.com/alexyer/ghost/ghost"
+	"github.com/alexyer/ghost/util"
 )
 
 type Server struct {
+	bufpool *util.Bufpool
 	opt     *Options
 	storage *ghost.Storage
+	logger  *log.Logger
 }
 
 func GhostRun(opt *Options) Server {
 	s := Server{
+		bufpool: util.NewBufpool(),
 		opt:     opt,
 		storage: ghost.GetStorage(),
+		logger:  getLogger(opt.GetLogfileName()),
 	}
 
 	log.Printf("Starting Ghost server on %s", s.opt.GetAddr())
@@ -33,6 +37,10 @@ func (s *Server) handle() {
 		log.Fatal(err)
 	}
 
+	if socket := s.opt.GetSocket(); socket != "" {
+		go s.handleUnixSocket(socket)
+	}
+
 	for {
 		conn, err := ln.Accept()
 
@@ -41,56 +49,25 @@ func (s *Server) handle() {
 			continue
 		}
 
-		go s.handleConnection(conn)
+		go newClient(conn, s).handleCommand()
 	}
 }
 
-func (s *Server) handleConnection(conn net.Conn) {
-	go func() {
-		client := newClient(conn, s)
-		go s.handleCommand(client)
-	}()
-}
+func (s *Server) handleUnixSocket(socket string) {
+	ln, err := net.Listen("unix", socket)
 
-func (s *Server) handleCommand(c *client) {
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for {
-		if err := s.read(c.Conn, c.MsgHeader); err != nil {
-			log.Print(err)
-			c.Conn.Close()
-			return
-		}
-
-		// Read command to client buffer
-		if err := s.read(c.Conn, c.MsgBuffer); err != nil {
-			log.Print(err)
-			c.Conn.Close()
-			return
-		}
-
-		res, err := c.Exec()
+		fd, err := ln.Accept()
 
 		if err != nil {
-			log.Print(err)
-			c.Conn.Close()
-			return
+			s.logger.Println(err)
+			continue
 		}
 
-		replySize := ghost.IntToByteArray(int64(len(res)))
-
-		if _, err := c.Conn.Write(append(replySize, res...)); err != nil {
-			c.Conn.Close()
-			return
-		}
+		go newClient(fd, s).handleCommand()
 	}
-}
-
-func (s *Server) read(conn net.Conn, buf []byte) error {
-	// TODO(alexyer): Implement proper error handling
-	if _, err := conn.Read(buf); err != nil {
-		if err != io.EOF {
-			return err
-		}
-	}
-
-	return nil
 }

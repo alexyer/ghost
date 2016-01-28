@@ -1,14 +1,15 @@
-package client
+package main
 
 import (
 	"testing"
 	"time"
 
+	"github.com/alexyer/ghost/client"
 	"github.com/alexyer/ghost/server"
 )
 
 var (
-	c *GhostClient
+	c *client.GhostClient
 )
 
 func init() {
@@ -17,7 +18,7 @@ func init() {
 	// Wait until server start
 	// Yep, ugly. Tell if you know better solution
 	time.Sleep(1 * time.Second)
-	c = New(&Options{Addr: "localhost:6869"})
+	c = client.New(&client.Options{Addr: "localhost:6869"})
 }
 
 func TestPing(t *testing.T) {
@@ -75,5 +76,19 @@ func TestBasicOperations(t *testing.T) {
 
 	if res == "test_val" {
 		t.Errorf("wrong del")
+	}
+}
+
+func TestBigValues(t *testing.T) {
+	val := make([]byte, 1024*1024)
+
+	for i := range val {
+		val[i] = 'a'
+	}
+
+	c.Set("big_key", string(val))
+
+	if res, _ := c.Get("big_key"); res != string(val) {
+		t.Fatalf("Got wrong big key: %s", res)
 	}
 }

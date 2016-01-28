@@ -3,27 +3,29 @@ package client
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/alexyer/ghost/ghost"
 	"github.com/alexyer/ghost/protocol"
+	"github.com/alexyer/ghost/util"
 	"github.com/golang/protobuf/proto"
 )
 
 type GhostClient struct {
+	bufpool  *util.Bufpool
 	connPool pool
 	opt      *Options
 	processor
-	msgHeader []byte
-	msgBuffer []byte
+	MsgHeader []byte
 }
 
 func New(opt *Options) *GhostClient {
 	newClient := &GhostClient{
+		bufpool:   util.NewBufpool(),
 		connPool:  newConnPool(opt),
 		opt:       opt,
-		msgHeader: make([]byte, opt.GetMsgHeaderSize()),
-		msgBuffer: make([]byte, opt.GetMsgBufferSize()),
+		MsgHeader: make([]byte, MSG_HEADER_SIZE),
 	}
 
 	newClient.processor.process = newClient.process
@@ -69,9 +71,10 @@ func (c *GhostClient) process(cmd *protocol.Command) (*protocol.Reply, error) {
 			return nil, err
 		}
 
-		msgSize := ghost.IntToByteArray(int64(len(marshaledCmd)))
+		msgSize := ghost.UintToByteArray(uint64(len(marshaledCmd)))
+		msg := append(msgSize, marshaledCmd...)
 
-		if _, err := cn.Write(append(msgSize, marshaledCmd...)); err != nil {
+		if _, err := cn.Write(msg); err != nil {
 			fmt.Println(err)
 			c.putConn(cn, err)
 			return nil, err
@@ -88,20 +91,34 @@ func (c *GhostClient) process(cmd *protocol.Command) (*protocol.Reply, error) {
 
 // Get reply from the Ghost server and unmarshal.
 func (c *GhostClient) getReply(cn *conn) (*protocol.Reply, error) {
-	if _, err := cn.Read(c.msgHeader); err != nil {
-		c.putConn(cn, err)
-		return nil, err
+	// Read header
+	if read, err := util.ReadData(cn, c.MsgHeader, MSG_HEADER_SIZE); err != nil {
+		if err != io.EOF {
+			return nil, util.GhostErrorf("error when trying to read header. actually read: %d. underlying error: %s", read, err)
+		} else {
+			return nil, err
+		}
 	}
 
-	if _, err := cn.Read(c.msgBuffer); err != nil {
-		c.putConn(cn, err)
-		return nil, err
+	cmdLen, _ := ghost.ByteArrayToUint64(c.MsgHeader)
+	iCmdLen := int(cmdLen)
+	msgBuf := c.bufpool.Get(iCmdLen)
+	defer c.bufpool.Put(msgBuf)
+
+	// Read command to client buffer
+	cmdRead, cmdReadErr := util.ReadData(cn, msgBuf, iCmdLen)
+	if cmdReadErr != nil {
+		if cmdReadErr != io.EOF {
+			return nil, util.GhostErrorf("Failure to read from connection. was told to read %d, actually read: %d. underlying error: %s",
+				int(iCmdLen), cmdRead, cmdReadErr)
+		} else {
+			return nil, cmdReadErr
+		}
 	}
 
-	cmdLen, _ := ghost.ByteArrayToUint64(c.msgHeader)
-	reply := new(protocol.Reply)
+	reply := &protocol.Reply{}
 
-	if err := proto.Unmarshal(c.msgBuffer[:cmdLen], reply); err != nil {
+	if err := proto.Unmarshal(msgBuf[:iCmdLen], reply); err != nil {
 		return nil, err
 	}
 

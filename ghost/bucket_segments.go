@@ -65,9 +65,9 @@ func (bs *bucketSegments) setBucket(i uint32, newBucket *bucket) {
 
 func (bs *bucketSegments) at(i uint32) (segmentIndex uint32, bucketIndex uint32) {
 	pos := i + INITIAL_SEGMENT_SIZE
-	hibit := bsr(pos)
+	hibit := Bsr(pos)
 
-	segmentIndex = hibit - bsr(INITIAL_SEGMENT_SIZE)
+	segmentIndex = hibit - Bsr(INITIAL_SEGMENT_SIZE)
 	bucketIndex = pos ^ (2<<hibit - 1)
 	return
 }

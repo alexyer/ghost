@@ -1,9 +1,14 @@
 package server
 
 type Options struct {
-	Addr          string
-	MsgHeaderSize int
-	MsgBufferSize int
+	// host:port address.
+	Addr string
+
+	// Unix socket filename.
+	Socket string
+
+	// Log file location.
+	LogfileName string
 }
 
 func (opt *Options) GetAddr() string {
@@ -14,18 +19,14 @@ func (opt *Options) GetAddr() string {
 	return opt.Addr
 }
 
-func (opt *Options) GetMsgHeaderSize() int {
-	if opt.MsgHeaderSize == 0 {
-		opt.MsgHeaderSize = 8
+func (opt *Options) GetLogfileName() string {
+	if opt.LogfileName == "" {
+		opt.LogfileName = "/tmp/ghost.log"
 	}
 
-	return opt.MsgHeaderSize
+	return opt.LogfileName
 }
 
-func (opt *Options) GetMsgBufferSize() int {
-	if opt.MsgBufferSize == 0 {
-		opt.MsgBufferSize = 4096
-	}
-
-	return opt.MsgBufferSize
+func (opt *Options) GetSocket() string {
+	return opt.Socket
 }
