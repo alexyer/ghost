@@ -145,7 +145,7 @@ func (c *client) readData(size int, buf []byte) (int, error) {
 	)
 
 	for totalBytesRead < size && readErr == nil {
-		bytesRead, readErr = c.Conn.Read(buf)
+		bytesRead, readErr = c.Conn.Read(buf[totalBytesRead:])
 		totalBytesRead += bytesRead
 	}
 
