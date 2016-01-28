@@ -9,6 +9,7 @@ import (
 
 	"github.com/alexyer/ghost/ghost"
 	"github.com/alexyer/ghost/protocol"
+	"github.com/alexyer/ghost/util"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -38,7 +39,7 @@ func (c *client) Exec() (reply []byte, err error) {
 	)
 
 	// Read header
-	if read, err := c.readData(MSG_HEADER_SIZE, c.MsgHeader); err != nil {
+	if read, err := util.ReadData(c.Conn, c.MsgHeader, MSG_HEADER_SIZE); err != nil {
 		if err != io.EOF {
 			return nil, GhostErrorf("error when trying to read header. actually read: %d. underlying error: %s", read, err)
 		} else {
@@ -51,7 +52,7 @@ func (c *client) Exec() (reply []byte, err error) {
 	msgBuf := c.Server.bufpool.Get(iCmdLen)
 
 	// Read command to client buffer
-	cmdRead, cmdReadErr := c.readData(iCmdLen, msgBuf)
+	cmdRead, cmdReadErr := util.ReadData(c.Conn, msgBuf, iCmdLen)
 	if cmdReadErr != nil {
 		if cmdReadErr != io.EOF {
 			return nil, GhostErrorf("Failure to read from connection. was told to read %d, actually read: %d. underlying error: %s",
@@ -134,20 +135,4 @@ func (c *client) encodeReply(values []string, err error) ([]byte, error) {
 		Values: values,
 		Error:  &errMsg,
 	})
-}
-
-// Read data of the given size from connection.
-func (c *client) readData(size int, buf []byte) (int, error) {
-	var (
-		totalBytesRead = 0
-		readErr        error
-		bytesRead      = 0
-	)
-
-	for totalBytesRead < size && readErr == nil {
-		bytesRead, readErr = c.Conn.Read(buf[totalBytesRead:])
-		totalBytesRead += bytesRead
-	}
-
-	return totalBytesRead, readErr
 }
