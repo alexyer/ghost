@@ -31,21 +31,31 @@ func GhostRun(opt *Options) Server {
 }
 
 func (s *Server) handle() {
-	ln, err := net.Listen("tcp", s.opt.GetAddr())
+	if socket := s.opt.GetSocket(); socket != "" {
+		go s.handleUnixSocket(socket)
+	}
+
+	s.handleTCP()
+}
+
+func (s *Server) handleTCP() {
+	ln, err := net.ListenTCP("tcp", s.opt.GetTCPAddr())
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if socket := s.opt.GetSocket(); socket != "" {
-		go s.handleUnixSocket(socket)
-	}
-
 	for {
-		conn, err := ln.Accept()
+		conn, err := ln.AcceptTCP()
 
 		if err != nil {
 			log.Println(err)
+			continue
+		}
+
+		if err := conn.SetNoDelay(false); err != nil {
+			s.logger.Println(err)
+			conn.Close()
 			continue
 		}
 

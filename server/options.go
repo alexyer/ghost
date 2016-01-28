@@ -1,5 +1,11 @@
 package server
 
+import (
+	"net"
+	"strconv"
+	"strings"
+)
+
 type Options struct {
 	// host:port address.
 	Addr string
@@ -17,6 +23,16 @@ func (opt *Options) GetAddr() string {
 	}
 
 	return opt.Addr
+}
+
+func (opt *Options) GetTCPAddr() *net.TCPAddr {
+	addr := strings.Split(opt.GetAddr(), ":")
+	port, _ := strconv.Atoi(addr[1])
+
+	return &net.TCPAddr{
+		IP:   net.ParseIP(addr[0]),
+		Port: port,
+	}
 }
 
 func (opt *Options) GetLogfileName() string {

@@ -9,17 +9,19 @@ import (
 )
 
 func obtainClient() *client.GhostClient {
-	return client.New(&client.Options{
-		Addr:     fmt.Sprintf("%s:%d", host, port),
-		PoolSize: clients,
-	})
+	return newClient(fmt.Sprintf("%s:%d", host, port), "tcp")
 }
 
 func obtainUnixSocketClient() *client.GhostClient {
+	return newClient(fmt.Sprintf(socket), "unix")
+}
+
+func newClient(addr, network string) *client.GhostClient {
 	return client.New(&client.Options{
-		Addr:     fmt.Sprintf(socket),
-		Network:  "unix",
-		PoolSize: clients,
+		Addr:        addr,
+		Network:     network,
+		PoolSize:    clients,
+		PoolTimeout: time.Duration(poolTimeout) * time.Second,
 	})
 }
 
