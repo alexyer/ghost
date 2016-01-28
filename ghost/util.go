@@ -31,26 +31,6 @@ func ByteArrayToUint64(bytes []byte) (uint64, int) {
 	return binary.Uvarint(bytes)
 }
 
-func GetHash(key string) uint32 {
-	return FNV1a_32([]byte(key))
-}
-
-func Regularkey(key uint32) uint32 {
-	return msb2lsb(key | 0x80000000)
-}
-
-func Dummykey(key uint32) uint32 {
-	return msb2lsb(key)
-}
-
-// Reverse MSB and LSB of the integer.
-func msb2lsb(i uint32) uint32 {
-	return (bitReverseTable256[i&0xff] << 24) |
-		(bitReverseTable256[(i>>8)&0xff] << 16) |
-		(bitReverseTable256[(i>>16)&0xff] << 8) |
-		(bitReverseTable256[(i>>24)&0xff])
-}
-
 func Bsr(i uint32) uint32 {
 	var r uint32 = 0
 

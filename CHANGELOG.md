@@ -1,3 +1,7 @@
+## 0.4.2
+  * Returned striped hash implementation. It performs a bit worse on benchmark,
+    but easy to undestand and prove correctness.
+
 ## 0.4.1
   * Implemented buffer pool. Server can accept messages of any size now.
   * Added unix socket support.
