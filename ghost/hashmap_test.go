@@ -8,7 +8,6 @@ import (
 
 const (
 	PARALLEL_TEST_TRY_NUM = 10000
-	PARALLEL_TEST_RETRIES = 1
 	MAXSIZE               = 82
 )
 
@@ -111,28 +110,26 @@ func TestHashDelete(t *testing.T) {
 }
 
 func TestHashDeleteParallel(t *testing.T) {
-	for retry := 0; retry < PARALLEL_TEST_RETRIES; retry++ {
-		var wg sync.WaitGroup
-		h := NewHashMap()
+	var wg sync.WaitGroup
+	h := NewHashMap()
 
-		for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
-			h.Set(string(i), "val"+string(i))
-		}
+	for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
+		h.Set(string(i), "val"+string(i))
+	}
 
-		for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
-			wg.Add(1)
-			go func() {
-				h.Del(string(i))
-				wg.Done()
-			}()
-		}
+	for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
+		wg.Add(1)
+		go func(i int) {
+			h.Del(string(i))
+			wg.Done()
+		}(i)
+	}
 
-		wg.Wait()
+	wg.Wait()
 
-		for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
-			if val, err := h.Get(string(i)); err == nil && val == "val"+string(i) {
-				t.Fatal("Wrong delete behavior.")
-			}
+	for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
+		if val, err := h.Get(string(i)); err == nil && val == "val"+string(i) {
+			t.Fatal("Wrong delete behavior.")
 		}
 	}
 }
