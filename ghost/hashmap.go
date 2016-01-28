@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	initSize  uint32  = 64   // Default number of buckets
-	threshold float32 = 0.75 // Threshold load factor to rehash table
+	INIT_SIZE uint32  = 64   // Default number of buckets
+	THRESHOLD float32 = 0.75 // Threshold load factor to rehash table
 )
 
 type node struct {
@@ -29,20 +29,16 @@ type hashMap struct {
 }
 
 func NewHashMap() *hashMap {
-	newTable := &hashMap{}
-
-	newTable.buckets = make([]bucket, initSize)
-
-	newTable.locks = make([]sync.Mutex, initSize)
-
-	newTable.Size = initSize
-
-	return newTable
+	return &hashMap{
+		buckets: make([]bucket, INIT_SIZE),
+		locks:   make([]sync.Mutex, INIT_SIZE),
+		Size:    INIT_SIZE,
+	}
 }
 
 // Set or update key.
 func (h *hashMap) Set(key, val string) {
-	if h.loadFactor() >= threshold {
+	if h.loadFactor() >= THRESHOLD {
 		h.rehash()
 	}
 

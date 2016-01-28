@@ -10,7 +10,7 @@ type vector struct {
 // Push element to vector.
 func (v *vector) Push(n node) {
 	if v.Nodes == nil {
-		v.Nodes = make([]node, initSize)
+		v.Nodes = make([]node, INIT_SIZE)
 	}
 
 	if v.count == len(v.Nodes) {
