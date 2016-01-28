@@ -64,6 +64,8 @@ Usage of ./ghost-benchmark:
         Total number of requests (default 10000)
   -size int
         Data size of SET/GET value in bytes (default 2)
+  -socket string
+        listen to unix socket
 ```
 
 ## Client
