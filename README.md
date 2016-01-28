@@ -51,13 +51,17 @@ make ghost-benchmark
 ```
 
 ```sh
-Usage of ./ghost-benchmark:
+Usage of ghost-benchmark:
   -clients int
         Number of paralel connections (default 50)
+  -embedded
+        Test embedded storage
   -host string
         Server hostname (default "localhost")
   -keyrange int
         Use random keys for SET/GET (default 100)
+  -pooltimeout int
+        Client PoolTimeout option (default 10)
   -port int
         Server port (default 6869)
   -requests int
@@ -65,7 +69,7 @@ Usage of ./ghost-benchmark:
   -size int
         Data size of SET/GET value in bytes (default 2)
   -socket string
-        listen to unix socket
+        Listen to unix socket
 ```
 
 ## Client

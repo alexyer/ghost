@@ -12,14 +12,15 @@ import (
 )
 
 var (
-	embedded bool
-	host     string
-	port     int
-	clients  int
-	requests int
-	size     int
-	keyrange int
-	socket   string
+	embedded    bool
+	host        string
+	port        int
+	clients     int
+	requests    int
+	size        int
+	keyrange    int
+	socket      string
+	poolTimeout int
 )
 
 type result struct {
@@ -35,7 +36,8 @@ func init() {
 	flag.IntVar(&requests, "requests", 10000, "Total number of requests")
 	flag.IntVar(&size, "size", 2, "Data size of SET/GET value in bytes")
 	flag.IntVar(&keyrange, "keyrange", 100, "Use random keys for SET/GET")
-	flag.StringVar(&socket, "socket", "", "listen to unix socket")
+	flag.StringVar(&socket, "socket", "", "Listen to unix socket")
+	flag.IntVar(&poolTimeout, "pooltimeout", 10, "Client PoolTimeout option")
 	flag.Parse()
 
 }
