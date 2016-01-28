@@ -17,7 +17,7 @@ type GhostClient struct {
 	connPool pool
 	opt      *Options
 	processor
-	msgHeader []byte
+	MsgHeader []byte
 }
 
 func New(opt *Options) *GhostClient {
@@ -25,7 +25,7 @@ func New(opt *Options) *GhostClient {
 		bufpool:   util.NewBufpool(),
 		connPool:  newConnPool(opt),
 		opt:       opt,
-		msgHeader: make([]byte, MSG_HEADER_SIZE),
+		MsgHeader: make([]byte, MSG_HEADER_SIZE),
 	}
 
 	newClient.processor.process = newClient.process
@@ -91,23 +91,34 @@ func (c *GhostClient) process(cmd *protocol.Command) (*protocol.Reply, error) {
 
 // Get reply from the Ghost server and unmarshal.
 func (c *GhostClient) getReply(cn *conn) (*protocol.Reply, error) {
-	if _, err := cn.Read(c.msgHeader); err != nil {
-		log.Print(err)
-		return nil, err
+	// Read header
+	if read, err := util.ReadData(cn, c.MsgHeader, MSG_HEADER_SIZE); err != nil {
+		if err != io.EOF {
+			return nil, util.GhostErrorf("error when trying to read header. actually read: %d. underlying error: %s", read, err)
+		} else {
+			return nil, err
+		}
 	}
 
-	cmdLen, _ := ghost.ByteArrayToUint64(c.msgHeader)
-	buf := c.bufpool.Get(int(cmdLen))
+	cmdLen, _ := ghost.ByteArrayToUint64(c.MsgHeader)
+	iCmdLen := int(cmdLen)
+	msgBuf := c.bufpool.Get(iCmdLen)
+	defer c.bufpool.Put(msgBuf)
 
-	if _, err := cn.Read(buf); err != nil {
-		if err != io.EOF {
-			return nil, err
+	// Read command to client buffer
+	cmdRead, cmdReadErr := util.ReadData(cn, msgBuf, iCmdLen)
+	if cmdReadErr != nil {
+		if cmdReadErr != io.EOF {
+			return nil, util.GhostErrorf("Failure to read from connection. was told to read %d, actually read: %d. underlying error: %s",
+				int(iCmdLen), cmdRead, cmdReadErr)
+		} else {
+			return nil, cmdReadErr
 		}
 	}
 
 	reply := &protocol.Reply{}
 
-	if err := proto.Unmarshal(buf[:cmdLen], reply); err != nil {
+	if err := proto.Unmarshal(msgBuf[:iCmdLen], reply); err != nil {
 		return nil, err
 	}
 

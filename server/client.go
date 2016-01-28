@@ -58,14 +58,14 @@ func (c *client) Exec() (reply []byte, err error) {
 			return nil, util.GhostErrorf("Failure to read from connection. was told to read %d, actually read: %d. underlying error: %s",
 				int(iCmdLen), cmdRead, cmdReadErr)
 		} else {
-			return nil, err
+			return nil, cmdReadErr
 		}
 	}
 
 	if cmdRead > 0 && cmdReadErr == nil {
 		if err := proto.Unmarshal(msgBuf[:iCmdLen], cmd); err != nil {
 			c.Server.bufpool.Put(msgBuf)
-			return nil, err
+			return nil, cmdReadErr
 		}
 	} else {
 		return nil, cmdReadErr
