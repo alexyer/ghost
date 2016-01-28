@@ -9,6 +9,7 @@ import (
 const (
 	INIT_SIZE uint32  = 64   // Default number of buckets
 	THRESHOLD float32 = 0.75 // Threshold load factor to rehash table
+	LOCKS_NUM         = 1024 // Size of the lock array
 )
 
 type node struct {
@@ -31,7 +32,7 @@ type hashMap struct {
 func NewHashMap() *hashMap {
 	return &hashMap{
 		buckets: make([]bucket, INIT_SIZE),
-		locks:   make([]sync.Mutex, INIT_SIZE),
+		locks:   make([]sync.Mutex, LOCKS_NUM),
 		Size:    INIT_SIZE,
 	}
 }
