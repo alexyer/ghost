@@ -41,7 +41,7 @@ func (c *client) Exec() (reply []byte, err error) {
 	// Read header
 	if read, err := util.ReadData(c.Conn, c.MsgHeader, MSG_HEADER_SIZE); err != nil {
 		if err != io.EOF {
-			return nil, GhostErrorf("error when trying to read header. actually read: %d. underlying error: %s", read, err)
+			return nil, util.GhostErrorf("error when trying to read header. actually read: %d. underlying error: %s", read, err)
 		} else {
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func (c *client) Exec() (reply []byte, err error) {
 	cmdRead, cmdReadErr := util.ReadData(c.Conn, msgBuf, iCmdLen)
 	if cmdReadErr != nil {
 		if cmdReadErr != io.EOF {
-			return nil, GhostErrorf("Failure to read from connection. was told to read %d, actually read: %d. underlying error: %s",
+			return nil, util.GhostErrorf("Failure to read from connection. was told to read %d, actually read: %d. underlying error: %s",
 				int(iCmdLen), cmdRead, cmdReadErr)
 		} else {
 			return nil, err

@@ -1,9 +1,9 @@
 package util
 
-import "net"
+import "io"
 
 // Read data of the given size from connection.
-func ReadData(conn net.Conn, buf []byte, size int) (int, error) {
+func ReadData(conn io.Reader, buf []byte, size int) (int, error) {
 	var (
 		totalBytesRead = 0
 		readErr        error
