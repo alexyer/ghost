@@ -2,11 +2,15 @@ package ghost
 
 import (
 	"fmt"
+	"sync"
 	"testing"
-	"time"
 )
 
-const MAXSIZE = 82
+const (
+	PARALLEL_TEST_TRY_NUM = 10000
+	PARALLEL_TEST_RETRIES = 1
+	MAXSIZE               = 82
+)
 
 var (
 	empty   *hashMap
@@ -107,21 +111,28 @@ func TestHashDelete(t *testing.T) {
 }
 
 func TestHashDeleteParallel(t *testing.T) {
-	h := NewHashMap()
+	for retry := 0; retry < PARALLEL_TEST_RETRIES; retry++ {
+		var wg sync.WaitGroup
+		h := NewHashMap()
 
-	for i := 0; i < 1000; i++ {
-		h.Set(string(i), "val")
-	}
+		for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
+			h.Set(string(i), "val"+string(i))
+		}
 
-	for i := 0; i < 1000; i++ {
-		go h.Del(string(i))
-	}
+		for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
+			wg.Add(1)
+			go func() {
+				h.Del(string(i))
+				wg.Done()
+			}()
+		}
 
-	time.Sleep(1 * time.Millisecond)
+		wg.Wait()
 
-	for i := 0; i < 1000; i++ {
-		if _, err := h.Get(string(i)); err == nil {
-			t.Fatal("Wrong delete behavior")
+		for i := 0; i < PARALLEL_TEST_TRY_NUM; i++ {
+			if val, err := h.Get(string(i)); err == nil && val == "val"+string(i) {
+				t.Fatal("Wrong delete behavior.")
+			}
 		}
 	}
 }
