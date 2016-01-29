@@ -2,8 +2,8 @@
 package ghost
 
 import (
-	"errors"
 	"sync"
+	"time"
 )
 
 const (
@@ -13,8 +13,10 @@ const (
 )
 
 type node struct {
-	Key string
-	Val string
+	Key            string
+	Val            string
+	expire         bool // Expiration flag. Expire at expirationDate if 'true'
+	expirationDate time.Time
 }
 
 type bucket struct {
@@ -50,7 +52,10 @@ func (h *hashMap) Set(key, val string) {
 	bucketIndex := h.buckets[index].Find(key)
 
 	if bucketIndex < 0 {
-		h.buckets[index].Push(node{key, val})
+		h.buckets[index].Push(node{
+			Key: key,
+			Val: val,
+		})
 
 		h.CountMu.Lock()
 		h.Count++
@@ -73,7 +78,7 @@ func (h *hashMap) Get(key string) (string, error) {
 
 	if bucketIndex < 0 {
 		h.release(index)
-		return "", errors.New("No value")
+		return "", NoValueErr
 	} else {
 		val := h.buckets[index].Nodes[bucketIndex].Val
 		h.release(index)
@@ -102,6 +107,69 @@ func (h *hashMap) Del(key string) {
 	h.CountMu.Unlock()
 
 	h.release(index)
+}
+
+// Set expiration date.
+// ttl - time to live of the key in seconds.
+func (h *hashMap) Expire(key string, ttl int) error {
+	index := h.getIndex(key)
+
+	h.acquire(index)
+
+	bucketIndex := h.buckets[index].Find(key)
+
+	if bucketIndex < 0 {
+		h.release(index)
+		return NoValueErr
+	} else {
+		h.buckets[index].Nodes[bucketIndex].expirationDate = time.Now().Add(time.Duration(ttl) * time.Second)
+		h.buckets[index].Nodes[bucketIndex].expire = true
+		h.release(index)
+
+		return nil
+	}
+}
+
+// Show ttl of the key.
+func (h *hashMap) TTL(key string) (int, error) {
+	index := h.getIndex(key)
+
+	h.acquire(index)
+
+	bucketIndex := h.buckets[index].Find(key)
+
+	if bucketIndex < 0 {
+		h.release(index)
+		return -1, NoValueErr
+	}
+
+	if !h.buckets[index].Nodes[bucketIndex].expire {
+		h.release(index)
+		return -1, nil
+	}
+
+	ttl := int(h.buckets[index].Nodes[bucketIndex].expirationDate.Sub(time.Now()).Seconds())
+	h.release(index)
+
+	return ttl, nil
+}
+
+// Remove the existing timeout on key.
+func (h *hashMap) Persist(key string) error {
+	index := h.getIndex(key)
+
+	h.acquire(index)
+
+	bucketIndex := h.buckets[index].Find(key)
+
+	if bucketIndex < 0 {
+		h.release(index)
+		return NoValueErr
+	} else {
+		h.buckets[index].Nodes[bucketIndex].expire = false
+		h.release(index)
+		return nil
+	}
 }
 
 // Get current load factor.

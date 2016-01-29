@@ -4,10 +4,22 @@ import "testing"
 
 func TestVectorPush(t *testing.T) {
 	vec := vector{}
-	vec.Push(node{"key", "val"})
-	vec.Push(node{"key1", "val1"})
-	vec.Push(node{"key2", "val2"})
-	vec.Push(node{"key3", "val3"})
+	vec.Push(node{
+		Key: "key",
+		Val: "val",
+	})
+	vec.Push(node{
+		Key: "key1",
+		Val: "val1",
+	})
+	vec.Push(node{
+		Key: "key2",
+		Val: "val2",
+	})
+	vec.Push(node{
+		Key: "key3",
+		Val: "val3",
+	})
 
 	index := vec.Find("key1")
 
