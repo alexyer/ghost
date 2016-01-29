@@ -205,9 +205,7 @@ func main() {
 ```
 
 ## TODO
-  * Improve CLI
-  * Improve documentation
-  * Properly comment sources
+[Release Milestone](https://github.com/alexyer/ghost/milestones/Release)
 
 ## Contributing
 It's learing project, so there are possible a lot of issues, espesially in concurrent code,
