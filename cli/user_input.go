@@ -1,16 +1,18 @@
 package cli
 
 import (
-	"bufio"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"regexp"
 	"strings"
+
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 const CLI_GREETING = "> "
+
+var term = terminal.NewTerminal(os.Stdin, CLI_GREETING)
 
 func processUserInput() (string, []string, error) {
 	commStr, err := readUserInput()
@@ -22,9 +24,7 @@ func processUserInput() (string, []string, error) {
 }
 
 func readUserInput() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print(CLI_GREETING)
-	return reader.ReadString('\n')
+	return term.ReadLine()
 }
 
 func parseCommand(commStr string) (string, []string, error) {
