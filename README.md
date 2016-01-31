@@ -134,6 +134,9 @@ riders on the storm
 OK
 > get "another song"
 stairway
+# cli also supports two utility command:
+> help # to get the help message
+> quit # to correct way out of cli
 ```
 
 ## Embedded
