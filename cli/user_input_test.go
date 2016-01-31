@@ -211,3 +211,12 @@ func TestParseSetWithEscapedQuoteWarning(t *testing.T) {
 		t.Error("Error on args parsing in quotes: args: ", args)
 	}
 }
+
+func TestParseUnmatchedQuotes(t *testing.T) {
+	commString := "set quote \""
+
+	_, _, err := parseCommand(commString)
+	if err == nil {
+		t.Error("Ignoring error with unmatched quote")
+	}
+}

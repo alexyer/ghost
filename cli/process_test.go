@@ -167,3 +167,21 @@ func TestCollectionErrorState(t *testing.T) {
 		t.Error("Error doesn't raise on select non-existed collection")
 	}
 }
+
+func TestHelp(t *testing.T) {
+	result, err := makeRequest(c, "HELP", []string{})
+	if err != nil {
+		t.Error("Error on HELP command: ", err.Error())
+	}
+
+	if len(result) < len(helpMessage) {
+		t.Errorf("Wrong HELP response, message too small, result: %s", result)
+	}
+}
+
+func TestHelpWrong(t *testing.T) {
+	_, err := makeRequest(c, "HELP", []string{"cavabanga"})
+	if err == nil {
+		t.Error("Help ignoring wrong argument number.")
+	}
+}
