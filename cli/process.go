@@ -4,14 +4,23 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"strings"
+
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/alexyer/ghost/client"
+)
+
+var (
+	helpMessage  = initHelpMessage()
+	regularState *terminal.State
 )
 
 // initialize endless cli-session with provided client
 // as a connection to ghost-server
 func StartCliSession(c *client.GhostClient) {
-	log.Println("Cli-ghost session started")
+	prepareCliSession()
 
 	for {
 		comm, args, err := processUserInput()
@@ -52,6 +61,10 @@ func makeRequest(c *client.GhostClient, comm string, args []string) (string, err
 		if err := addColl(c, args); err != nil {
 			return "", err
 		}
+	case "HELP", "/H":
+		return help(c, args)
+	case "EXIT", "QUIT", "/Q":
+		closeCliSession()
 	default:
 		return "", errors.New("unknown command: " + comm)
 	}
@@ -59,59 +72,46 @@ func makeRequest(c *client.GhostClient, comm string, args []string) (string, err
 	return "OK", nil
 }
 
-func pingServer(c *client.GhostClient, args []string) (string, error) {
+func prepareCliSession() {
+	var err error
+
+	regularState, err = terminal.MakeRaw(0)
+	if err != nil {
+		log.Fatalf("Error on cli session startup: %s. Exiting.", err.Error())
+	}
+
+	log.Println("Cli-ghost session was started. Type 'help' or '/h' for more information.")
+}
+
+// util cli-close handler
+func closeCliSession() {
+	terminal.Restore(0, regularState)
+
+	log.Print("Cli session was successfully closed.")
+	os.Exit(0)
+}
+
+// util help handler
+func help(c *client.GhostClient, args []string) (string, error) {
 	if len(args) != 0 {
-		return "", errors.New(fmt.Sprintf("wrong number of arguments to PING: need 0, get %d", len(args)))
+		return "", errors.New(fmt.Sprintf("wrong number of arguments for HELP: need 0, get %d", len(args)))
 	}
 
-	reply, err := c.Ping()
-	return reply.Values[0], err
+	return helpMessage, nil
 }
 
-func setValue(c *client.GhostClient, args []string) error {
-	if len(args) != 2 {
-		return errors.New(fmt.Sprintf("wrong number of arguments to SET: need 2, get %d", len(args)))
+func initHelpMessage() string {
+	hm := []string{
+		"Welcome to ghost-cli tool. To see this message enter '/h' or 'help'.",
+		"To exit ghost-cli tool enter 'exit', 'quit' or '/q'.",
+		"",
+		"To add some value to collection enter 'set key value'",
+		"To get some value from collection enter 'get key'",
+		"To delete some value from collection enter 'del key'",
+		"",
+		"To a new collection to storage enter 'cadd key'",
+		"To select some collection in storage enter 'cget key'",
 	}
 
-	c.Set(args[0], args[1])
-	return nil
-}
-
-func getValue(c *client.GhostClient, args []string) (string, error) {
-	if len(args) != 1 {
-		return "", errors.New(fmt.Sprintf("wrong number of arguments to GET: need 1, get %d", len(args)))
-	}
-
-	return c.Get(args[0])
-}
-
-func delValue(c *client.GhostClient, args []string) error {
-	if len(args) != 1 {
-		return errors.New(fmt.Sprintf("wrong number of arguments to DEL: need 1, get %d", len(args)))
-	}
-
-	c.Del(args[0])
-	return nil
-}
-
-func addColl(c *client.GhostClient, args []string) error {
-	if len(args) != 1 {
-		return errors.New(fmt.Sprintf("wrong number of arguments to CADD: need 1, get %d", len(args)))
-	}
-
-	if _, err := c.CAdd(args[0]); err != nil {
-		return err
-	}
-	return nil
-}
-
-func getColl(c *client.GhostClient, args []string) error {
-	if len(args) != 1 {
-		return errors.New(fmt.Sprintf("wrong number of arguments to CGET: need 1, get %d", len(args)))
-	}
-
-	if _, err := c.CGet(args[0]); err != nil {
-		return err
-	}
-	return nil
+	return strings.Join(hm, "\n")
 }

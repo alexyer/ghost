@@ -4,8 +4,6 @@ import (
 	"flag"
 	"log"
 
-	"golang.org/x/crypto/ssh/terminal"
-
 	"github.com/alexyer/ghost/cli"
 	"github.com/alexyer/ghost/client"
 )
@@ -24,9 +22,8 @@ func init() {
 
 func main() {
 	var (
-		c            *client.GhostClient
-		regularState *terminal.State
-		err          error
+		c   *client.GhostClient
+		err error
 	)
 
 	flag.Parse()
@@ -39,14 +36,6 @@ func main() {
 
 	if err != nil {
 		log.Printf("Error: %s. Exiting.", err.Error())
-		return
-	}
-
-	regularState, err = terminal.MakeRaw(0)
-	defer terminal.Restore(0, regularState)
-
-	if err != nil {
-		log.Printf("Error with userinput session: %s. Exiting.", err.Error())
 		return
 	}
 
