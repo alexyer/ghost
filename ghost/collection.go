@@ -22,3 +22,7 @@ func (c *Collection) Get(key string) (string, error) {
 func (c *Collection) Del(key string) {
 	c.hashMap.Del(key)
 }
+
+func (c *Collection) Expire(key string, ttl int) error {
+	return c.hashMap.Expire(key, ttl)
+}

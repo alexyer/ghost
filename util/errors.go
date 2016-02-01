@@ -13,6 +13,10 @@ func GhostCmdError(cmdName, msg string) error {
 	return GhostBaseError(fmt.Sprintf("%s: %s", cmdName, msg))
 }
 
+func GhostCmdWrongArgsError(cmdName string) error {
+	return GhostCmdError(cmdName, "wrong arguments")
+}
+
 func GhostErrorf(formatString string, a ...interface{}) error {
 	return GhostBaseError(fmt.Sprintf(formatString, a...))
 }

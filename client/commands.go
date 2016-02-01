@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/alexyer/ghost/protocol"
 )
@@ -110,6 +111,30 @@ func (p *processor) CAdd(collectionName string) (string, error) {
 	cmd := &protocol.Command{
 		CommandId: &cmdId,
 		Args:      []string{collectionName},
+	}
+
+	reply, err := p.process(cmd)
+
+	if err != nil {
+		return "", err
+	}
+
+	if *reply.Error != "" {
+		return "", errors.New(*reply.Error)
+	}
+
+	return "", nil
+}
+
+// EXPIRE command.
+// EXPIRE <key> <seconds>
+// Set expiration time of the key.
+func (p *processor) Expire(key string, ttl int) (string, error) {
+	cmdId := protocol.CommandId_EXPIRE
+
+	cmd := &protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{key, strconv.Itoa(ttl)},
 	}
 
 	reply, err := p.process(cmd)
