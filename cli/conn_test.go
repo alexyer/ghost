@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -28,4 +29,20 @@ func TestSuccessfullConnect(t *testing.T) {
 	if err != nil {
 		t.Error("Error on ping ", err.Error())
 	}
+}
+
+func TestSuccessfullSocketConnect(t *testing.T) {
+	go server.GhostRun(&server.Options{Addr: "localhost:6871", Socket: "123"})
+	time.Sleep(1 * time.Second)
+
+	c, err := ObtainUnixSocketClient("123")
+	if err != nil {
+		t.Error("Can't connect to test localhost ", err.Error())
+	}
+
+	_, err = c.Ping()
+	if err != nil {
+		t.Error("Error on ping ", err.Error())
+	}
+	os.Remove("123")
 }
