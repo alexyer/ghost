@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"strconv"
 
 	"github.com/alexyer/ghost/protocol"
@@ -51,17 +50,11 @@ func (p *processor) Get(key string) (string, error) {
 		Args:      []string{key},
 	}
 
-	reply, err := p.process(cmd)
-
-	if err != nil {
+	if reply, err := getReplyErrors(p.process(cmd)); err != nil {
 		return "", err
+	} else {
+		return reply.Values[0], nil
 	}
-
-	if *reply.Error != "" {
-		return "", errors.New(*reply.Error)
-	}
-
-	return reply.Values[0], nil
 }
 
 // DEL command.
@@ -89,17 +82,8 @@ func (p *processor) CGet(collectionName string) (string, error) {
 		Args:      []string{collectionName},
 	}
 
-	reply, err := p.process(cmd)
-
-	if err != nil {
-		return "", err
-	}
-
-	if *reply.Error != "" {
-		return "", errors.New(*reply.Error)
-	}
-
-	return "", nil
+	_, err := getReplyErrors(p.process(cmd))
+	return "", err
 }
 
 // CADD command.
@@ -113,17 +97,8 @@ func (p *processor) CAdd(collectionName string) (string, error) {
 		Args:      []string{collectionName},
 	}
 
-	reply, err := p.process(cmd)
-
-	if err != nil {
-		return "", err
-	}
-
-	if *reply.Error != "" {
-		return "", errors.New(*reply.Error)
-	}
-
-	return "", nil
+	_, err := getReplyErrors(p.process(cmd))
+	return "", err
 }
 
 // EXPIRE command.
@@ -137,17 +112,8 @@ func (p *processor) Expire(key string, ttl int) (string, error) {
 		Args:      []string{key, strconv.Itoa(ttl)},
 	}
 
-	reply, err := p.process(cmd)
-
-	if err != nil {
-		return "", err
-	}
-
-	if *reply.Error != "" {
-		return "", errors.New(*reply.Error)
-	}
-
-	return "", nil
+	_, err := getReplyErrors(p.process(cmd))
+	return "", err
 }
 
 // TTL command.
@@ -161,14 +127,9 @@ func (p *processor) TTL(key string) (int, error) {
 		Args:      []string{key},
 	}
 
-	reply, err := p.process(cmd)
-
+	reply, err := getReplyErrors(p.process(cmd))
 	if err != nil {
 		return -1, err
-	}
-
-	if *reply.Error != "" {
-		return -1, errors.New(*reply.Error)
 	}
 
 	ttl, err := strconv.Atoi(reply.Values[0])
@@ -190,15 +151,6 @@ func (p *processor) Persist(key string) error {
 		Args:      []string{key},
 	}
 
-	reply, err := p.process(cmd)
-
-	if err != nil {
-		return err
-	}
-
-	if *reply.Error != "" {
-		return errors.New(*reply.Error)
-	}
-
-	return nil
+	_, err := getReplyErrors(p.process(cmd))
+	return err
 }
