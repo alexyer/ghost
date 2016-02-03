@@ -182,3 +182,24 @@ func TestCAddCmd(t *testing.T) {
 		t.Errorf("CADD: add collection: %s", err)
 	}
 }
+
+func TestTTLCmd(t *testing.T) {
+	c.collection.Set("ttl_key", "ttl")
+	c.collection.Expire("ttl_key", 42)
+
+	cmdId := protocol.CommandId_TTL
+
+	_, err := c.execCmd(&protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{"key1"},
+	})
+
+	_, err = c.execCmd(&protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{"ttl_key"},
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+}

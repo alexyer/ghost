@@ -105,3 +105,18 @@ func (c *client) Expire(cmd *protocol.Command) ([]string, error) {
 		return nil, nil
 	}
 }
+
+// TTL command.
+// TTL <key>
+// Get expiration time of the key.
+func (c *client) TTL(cmd *protocol.Command) ([]string, error) {
+	if len(cmd.Args) != 1 {
+		return nil, util.GhostCmdWrongArgsError("TTL")
+	}
+
+	if ttl, err := c.collection.TTL(cmd.Args[0]); err != nil {
+		return []string{strconv.Itoa(ttl)}, util.GhostCmdError("TTL", err.Error())
+	} else {
+		return []string{strconv.Itoa(ttl)}, nil
+	}
+}

@@ -8,6 +8,7 @@ enum CommandId {
     CGET = 4;
     CADD = 5;
     EXPIRE = 6;
+    TTL = 7;
 }
 
 message Command {
