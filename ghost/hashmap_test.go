@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 )
 
 const (
@@ -131,5 +132,18 @@ func TestHashDeleteParallel(t *testing.T) {
 		if val, err := h.Get(string(i)); err == nil && val == "val"+string(i) {
 			t.Fatal("Wrong delete behavior.")
 		}
+	}
+}
+
+func TestExpire(t *testing.T) {
+	h := NewHashMap()
+	h.Set("key", "42")
+	h.Expire("key", 42)
+	expirationDate := time.Now().Add(time.Duration(42) * time.Second)
+	node := h.getNode("key")
+
+	if !node.expire || node.expirationDate.Round(time.Second) != expirationDate.Round(time.Second) {
+		t.Fatalf("wrong expiration date.\ngot expire: %t, date: %s.\nexpected expire: true, date %s",
+			node.expire, node.expirationDate, expirationDate)
 	}
 }

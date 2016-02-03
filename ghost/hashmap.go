@@ -242,6 +242,24 @@ func (h *hashMap) nodes() <-chan node {
 	return ch
 }
 
+// Get node with <key>.
+// The same as Get(), but returns *node.
+// User for debugging.
+func (h *hashMap) getNode(key string) *node {
+	index := h.getIndex(key)
+
+	h.acquire(index)
+	defer h.release(index)
+
+	bucketIndex := h.buckets[index].Find(key)
+
+	if bucketIndex < 0 {
+		return nil
+	} else {
+		return &h.buckets[index].Nodes[bucketIndex]
+	}
+}
+
 // Get index of bucket key belongs to.
 func (h *hashMap) getIndex(key string) uint32 {
 	return FNV1a_32([]byte(key)) & (h.Size - 1)
