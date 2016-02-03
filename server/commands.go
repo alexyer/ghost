@@ -120,3 +120,18 @@ func (c *client) TTL(cmd *protocol.Command) ([]string, error) {
 		return []string{strconv.Itoa(ttl)}, nil
 	}
 }
+
+// PERSIST command.
+// PERSIST <key>
+// Remove the existing timeout of the key.
+func (c *client) Persist(cmd *protocol.Command) ([]string, error) {
+	if len(cmd.Args) != 1 {
+		return nil, util.GhostCmdWrongArgsError("PERSIST")
+	}
+
+	if err := c.collection.Persist(cmd.Args[0]); err != nil {
+		return nil, util.GhostCmdError("PERSIST", err.Error())
+	} else {
+		return nil, nil
+	}
+}

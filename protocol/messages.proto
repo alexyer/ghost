@@ -9,6 +9,7 @@ enum CommandId {
     CADD = 5;
     EXPIRE = 6;
     TTL = 7;
+    PERSIST = 8;
 }
 
 message Command {

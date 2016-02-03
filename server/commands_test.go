@@ -191,15 +191,30 @@ func TestTTLCmd(t *testing.T) {
 
 	_, err := c.execCmd(&protocol.Command{
 		CommandId: &cmdId,
-		Args:      []string{"key1"},
-	})
-
-	_, err = c.execCmd(&protocol.Command{
-		CommandId: &cmdId,
 		Args:      []string{"ttl_key"},
 	})
 
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestPersistCmd(t *testing.T) {
+	c.collection.Set("persist_key", "persist")
+	c.collection.Expire("persist_key", 42)
+
+	cmdId := protocol.CommandId_PERSIST
+
+	_, err := c.execCmd(&protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{"persist_key"},
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ttl, _ := c.collection.TTL("persist_key"); ttl != -1 {
+		t.Error("key hasn't been persisted")
 	}
 }

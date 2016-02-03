@@ -119,6 +119,8 @@ func (c *client) execCmd(cmd *protocol.Command) (result []string, err error) {
 		result, err = c.Expire(cmd)
 	case protocol.CommandId_TTL:
 		result, err = c.TTL(cmd)
+	case protocol.CommandId_PERSIST:
+		result, err = c.Persist(cmd)
 	default:
 		err = errors.New("ghost: unknown command")
 	}
