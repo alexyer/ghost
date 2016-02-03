@@ -57,6 +57,8 @@ func makeRequest(c *client.GhostClient, comm string, args []string) (string, err
 		if err := expire(c, args); err != nil {
 			return "", err
 		}
+	case "TTL":
+		return ttl(c, args)
 	default:
 		return "", errors.New("unknown command: " + comm)
 	}
@@ -135,4 +137,17 @@ func expire(c *client.GhostClient, args []string) error {
 		return err
 	}
 	return nil
+}
+
+func ttl(c *client.GhostClient, args []string) (string, error) {
+	if len(args) != 1 {
+		return "", errors.New(fmt.Sprintf("wrong number of arguments to TTL: need 1, get %d", len(args)))
+	}
+
+	ttl, err := c.TTL(args[0])
+	if err != nil {
+		return "", err
+	}
+
+	return strconv.Itoa(ttl), nil
 }
