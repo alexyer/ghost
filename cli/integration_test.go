@@ -100,3 +100,17 @@ func TestSetGetCollectionParsingAndProcessing(t *testing.T) {
 		t.Error("Error on collection selection: ", err.Error())
 	}
 }
+
+func TestExpireParsingAndProcessing(t *testing.T) {
+	makeRequest(c, "SET", []string{"expireKey", "73"})
+	commString := "expire expireKey 42"
+	comm, args, err := parseCommand(commString)
+	if err != nil {
+		t.Error("Error on command parsing: ", err.Error())
+	}
+
+	_, err = makeRequest(c, comm, args)
+	if err != nil {
+		t.Error("Error on key expiration setting: ", err.Error())
+	}
+}

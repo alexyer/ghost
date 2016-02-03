@@ -167,3 +167,22 @@ func TestCollectionErrorState(t *testing.T) {
 		t.Error("Error doesn't raise on select non-existed collection")
 	}
 }
+
+func TestExpire(t *testing.T) {
+	_, err := makeRequest(c, "EXPIRE", []string{"nonexistentKey", "1"})
+	if err == nil {
+		t.Error("No value error hasn't been raised for EXPIRE.")
+	}
+
+	makeRequest(c, "SET", []string{"expireKey", ""})
+
+	_, err = makeRequest(c, "EXPIRE", []string{"expireKey"})
+	if err == nil {
+		t.Error("Wrong args number error hasn't been raised for EXPIRE.")
+	}
+
+	_, err = makeRequest(c, "EXPIRE", []string{"expireKey", "42"})
+	if err != nil {
+		t.Errorf("Error has been raised for EXPIRE: %s", err)
+	}
+}
