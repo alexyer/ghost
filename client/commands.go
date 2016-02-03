@@ -178,3 +178,27 @@ func (p *processor) TTL(key string) (int, error) {
 
 	return ttl, nil
 }
+
+// PERSIST command.
+// PERSIST <key>
+// Remove the existing timeout of the key.
+func (p *processor) Persist(key string) error {
+	cmdId := protocol.CommandId_PERSIST
+
+	cmd := &protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{key},
+	}
+
+	reply, err := p.process(cmd)
+
+	if err != nil {
+		return err
+	}
+
+	if *reply.Error != "" {
+		return errors.New(*reply.Error)
+	}
+
+	return nil
+}

@@ -96,7 +96,14 @@ func TestBigValues(t *testing.T) {
 func TestExpiration(t *testing.T) {
 	c.Set("expire_key", "val")
 	c.Expire("expire_key", 42)
+
 	if ttl, err := c.TTL("expire_key"); err != nil || ttl == -1 {
 		t.Fatalf("wrong expiration. ttl: %d, error: %s", ttl, err)
+	}
+
+	c.Persist("expire_key")
+
+	if ttl, _ := c.TTL("expire_key"); ttl != -1 {
+		t.Fatalf("key hasn't been persisted")
 	}
 }
