@@ -80,6 +80,16 @@ func (h *hashMap) Get(key string) (string, error) {
 		h.release(index)
 		return "", NoValueErr
 	} else {
+		// Active expiration.
+		// If expiration date has already passed, remove current item.
+		if h.buckets[index].Nodes[bucketIndex].expire &&
+			h.buckets[index].Nodes[bucketIndex].expirationDate.Before(time.Now()) {
+
+			h.buckets[index].Pop(bucketIndex)
+			h.release(index)
+			return "", NoValueErr
+		}
+
 		val := h.buckets[index].Nodes[bucketIndex].Val
 		h.release(index)
 
