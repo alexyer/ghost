@@ -216,3 +216,27 @@ func TestTTL(t *testing.T) {
 		t.Errorf("TTL: wrong ttl. ttl: %s, error: %s", ttl, err)
 	}
 }
+
+func TestPersist(t *testing.T) {
+	_, err := makeRequest(c, "PERSIST", []string{"nonexistentKey"})
+	if err == nil {
+		t.Error("No value error hasn't been raised for PERSIST.")
+	}
+
+	makeRequest(c, "SET", []string{"persist_key", "exp"})
+
+	_, err = makeRequest(c, "PERSIST", []string{"persist_key", "42"})
+	if err == nil {
+		t.Error("Wrong args number error hasn't been raised for PERSIST.")
+	}
+
+	makeRequest(c, "EXPIRE", []string{"persist_key"})
+	_, err = makeRequest(c, "PERSIST", []string{"persist_key"})
+	if err != nil {
+		t.Fatalf("Error has been raised for PERSIST: %s", err)
+	}
+
+	if ttl, _ := makeRequest(c, "TTL", []string{"persist_key"}); ttl != "-1" {
+		t.Errorf("Key hasn't been persisted. ttl: %s", ttl)
+	}
+}

@@ -59,6 +59,10 @@ func makeRequest(c *client.GhostClient, comm string, args []string) (string, err
 		}
 	case "TTL":
 		return ttl(c, args)
+	case "PERSIST":
+		if err := persist(c, args); err != nil {
+			return "", err
+		}
 	default:
 		return "", errors.New("unknown command: " + comm)
 	}
@@ -150,4 +154,12 @@ func ttl(c *client.GhostClient, args []string) (string, error) {
 	}
 
 	return strconv.Itoa(ttl), nil
+}
+
+func persist(c *client.GhostClient, args []string) error {
+	if len(args) != 1 {
+		return errors.New(fmt.Sprintf("wrong number of arguments to PERSIST: need 1, get %d", len(args)))
+	}
+
+	return c.Persist(args[0])
 }
