@@ -149,3 +149,32 @@ func (p *processor) Expire(key string, ttl int) (string, error) {
 
 	return "", nil
 }
+
+// TTL command.
+// TTL <key>
+// Get expiration time of the key.
+func (p *processor) TTL(key string) (int, error) {
+	cmdId := protocol.CommandId_TTL
+
+	cmd := &protocol.Command{
+		CommandId: &cmdId,
+		Args:      []string{key},
+	}
+
+	reply, err := p.process(cmd)
+
+	if err != nil {
+		return -1, err
+	}
+
+	if *reply.Error != "" {
+		return -1, errors.New(*reply.Error)
+	}
+
+	ttl, err := strconv.Atoi(reply.Values[0])
+	if err != nil {
+		return -1, err
+	}
+
+	return ttl, nil
+}

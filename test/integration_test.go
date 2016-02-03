@@ -92,3 +92,11 @@ func TestBigValues(t *testing.T) {
 		t.Fatalf("Got wrong big key: %s", res)
 	}
 }
+
+func TestExpiration(t *testing.T) {
+	c.Set("expire_key", "val")
+	c.Expire("expire_key", 42)
+	if ttl, err := c.TTL("expire_key"); err != nil || ttl == -1 {
+		t.Fatalf("wrong expiration. ttl: %d, error: %s", ttl, err)
+	}
+}
