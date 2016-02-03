@@ -186,3 +186,33 @@ func TestExpire(t *testing.T) {
 		t.Errorf("Error has been raised for EXPIRE: %s", err)
 	}
 }
+
+func TestTTL(t *testing.T) {
+	_, err := makeRequest(c, "TTL", []string{"nonexistentKey"})
+	if err == nil {
+		t.Error("No value error hasn't been raised for TTL.")
+	}
+
+	makeRequest(c, "SET", []string{"ttl_key", "exp"})
+
+	_, err = makeRequest(c, "TTL", []string{"ttl_key", "42"})
+	if err == nil {
+		t.Error("Wrong args number error hasn't been raised for TTL.")
+	}
+
+	ttl, err := makeRequest(c, "TTL", []string{"ttl_key"})
+	if err != nil {
+		t.Errorf("Error has been raised for TTL: %s", err)
+	}
+
+	if ttl != "-1" {
+		t.Errorf("TTL: wrong ttl. expected: -1, got: %s", ttl)
+	}
+
+	makeRequest(c, "EXPIRE", []string{"ttl_key", "42"})
+	ttl, err = makeRequest(c, "TTL", []string{"ttl_key"})
+
+	if err != nil || ttl == "-1" {
+		t.Errorf("TTL: wrong ttl. ttl: %s, error: %s", ttl, err)
+	}
+}

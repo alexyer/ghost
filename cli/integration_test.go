@@ -113,4 +113,15 @@ func TestExpireParsingAndProcessing(t *testing.T) {
 	if err != nil {
 		t.Error("Error on key expiration setting: ", err.Error())
 	}
+
+	commString = "ttl expireKey"
+	comm, args, err = parseCommand(commString)
+	if err != nil {
+		t.Error("Error on command parsing: ", err.Error())
+	}
+
+	_, err = makeRequest(c, comm, args)
+	if err != nil {
+		t.Error("Error on key ttl getting: ", err.Error())
+	}
 }
