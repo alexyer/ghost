@@ -30,3 +30,7 @@ func (c *Collection) Expire(key string, ttl int) error {
 func (c *Collection) TTL(key string) (int, error) {
 	return c.hashMap.TTL(key)
 }
+
+func (c *Collection) Persist(key string) error {
+	return c.hashMap.Persist(key)
+}

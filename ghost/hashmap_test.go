@@ -166,3 +166,15 @@ func TestTTL(t *testing.T) {
 		t.Fatalf("wrong ttl.\n got: %d, expected: -1\n", ttl)
 	}
 }
+
+func TestPersist(t *testing.T) {
+	h := NewHashMap()
+	h.Set("key", "42")
+	h.Expire("key", 42)
+	h.Persist("key")
+	node := h.getNode("key")
+
+	if node.expire {
+		t.Fatal("key hasn't been persisted")
+	}
+}
