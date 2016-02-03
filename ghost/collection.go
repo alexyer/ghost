@@ -26,3 +26,7 @@ func (c *Collection) Del(key string) {
 func (c *Collection) Expire(key string, ttl int) error {
 	return c.hashMap.Expire(key, ttl)
 }
+
+func (c *Collection) TTL(key string) (int, error) {
+	return c.hashMap.TTL(key)
+}

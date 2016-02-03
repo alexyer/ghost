@@ -135,6 +135,9 @@ func TestHashDeleteParallel(t *testing.T) {
 	}
 }
 
+// FIXME(alexyer): Too hacky time tests.
+//				   Think of something better.
+
 func TestExpire(t *testing.T) {
 	h := NewHashMap()
 	h.Set("key", "42")
@@ -145,5 +148,16 @@ func TestExpire(t *testing.T) {
 	if !node.expire || node.expirationDate.Round(time.Second) != expirationDate.Round(time.Second) {
 		t.Fatalf("wrong expiration date.\ngot expire: %t, date: %s.\nexpected expire: true, date %s",
 			node.expire, node.expirationDate, expirationDate)
+	}
+}
+
+func TestTTL(t *testing.T) {
+	h := NewHashMap()
+	h.Set("key", "42")
+	h.Expire("key", 42)
+	time.Sleep(100 * time.Millisecond)
+
+	if ttl, _ := h.TTL("key"); ttl != 41 {
+		t.Fatalf("wrong ttl.\n got: %d, expected: 42\n", ttl)
 	}
 }
