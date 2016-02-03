@@ -160,4 +160,9 @@ func TestTTL(t *testing.T) {
 	if ttl, _ := h.TTL("key"); ttl != 41 {
 		t.Fatalf("wrong ttl.\n got: %d, expected: 42\n", ttl)
 	}
+
+	h.Set("noexpire", "42")
+	if ttl, _ := h.TTL("noexpire"); ttl != -1 {
+		t.Fatalf("wrong ttl.\n got: %d, expected: -1\n", ttl)
+	}
 }
