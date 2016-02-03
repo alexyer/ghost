@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/alexyer/ghost/client"
 )
@@ -50,6 +51,10 @@ func makeRequest(c *client.GhostClient, comm string, args []string) (string, err
 		}
 	case "CADD":
 		if err := addColl(c, args); err != nil {
+			return "", err
+		}
+	case "EXPIRE":
+		if err := expire(c, args); err != nil {
 			return "", err
 		}
 	default:
@@ -111,6 +116,22 @@ func getColl(c *client.GhostClient, args []string) error {
 	}
 
 	if _, err := c.CGet(args[0]); err != nil {
+		return err
+	}
+	return nil
+}
+
+func expire(c *client.GhostClient, args []string) error {
+	if len(args) != 2 {
+		return errors.New(fmt.Sprintf("wrong number of arguments to EXPIRE: need 2, get %d", len(args)))
+	}
+
+	ttl, err := strconv.Atoi(args[1])
+	if err != nil {
+		return err
+	}
+
+	if _, err := c.Expire(args[0], ttl); err != nil {
 		return err
 	}
 	return nil
